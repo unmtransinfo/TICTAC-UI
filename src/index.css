@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* TICTAC Research Platform Design System
+   Scientific/Biomedical aesthetic with TDL color coding
+   All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 220 25% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 10%;
+
+    --primary: 210 100% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 25% 93%;
+    --secondary-foreground: 220 25% 10%;
+
+    --muted: 210 20% 96%;
+    --muted-foreground: 220 10% 45%;
+
+    --accent: 175 60% 40%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 88%;
+    --input: 210 20% 88%;
+    --ring: 210 100% 40%;
+
+    --radius: 0.5rem;
+
+    /* TDL (Target Development Level) Colors - from TICTAC paper */
+    --tdl-tclin: 210 100% 45%;
+    --tdl-tchem: 145 65% 40%;
+    --tdl-tbio: 45 95% 50%;
+    --tdl-tdark: 220 10% 50%;
+
+    /* Evidence type colors */
+    --evidence-result: 145 65% 40%;
+    --evidence-background: 210 60% 50%;
+    --evidence-derived: 270 50% 55%;
+
+    /* Scientific accent colors */
+    --scientific-glow: 195 100% 50%;
+    --molecular-primary: 200 80% 60%;
+    --molecular-secondary: 170 60% 50%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 220 25% 8%;
+    --foreground: 210 20% 95%;
+
+    --card: 220 25% 12%;
+    --card-foreground: 210 20% 95%;
+
+    --popover: 220 25% 12%;
+    --popover-foreground: 210 20% 95%;
+
+    --primary: 210 100% 55%;
+    --primary-foreground: 220 25% 8%;
+
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 210 20% 95%;
+
+    --muted: 220 20% 18%;
+    --muted-foreground: 210 15% 60%;
+
+    --accent: 175 60% 45%;
+    --accent-foreground: 220 25% 8%;
+
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 210 100% 55%;
+
+    /* TDL Colors - adjusted for dark mode */
+    --tdl-tclin: 210 100% 60%;
+    --tdl-tchem: 145 70% 50%;
+    --tdl-tbio: 45 95% 55%;
+    --tdl-tdark: 220 10% 55%;
+
+    /* Evidence type colors - dark mode */
+    --evidence-result: 145 70% 50%;
+    --evidence-background: 210 70% 60%;
+    --evidence-derived: 270 60% 65%;
+
+    /* Scientific accent colors - dark mode */
+    --scientific-glow: 195 100% 60%;
+    --molecular-primary: 200 80% 70%;
+    --molecular-secondary: 170 60% 60%;
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+
+  /* TDL Badge styles */
+  .tdl-badge-tclin {
+    @apply bg-tdl-tclin text-white;
+  }
+
+  .tdl-badge-tchem {
+    @apply bg-tdl-tchem text-white;
+  }
+
+  .tdl-badge-tbio {
+    @apply bg-tdl-tbio text-foreground;
+  }
+
+  .tdl-badge-tdark {
+    @apply bg-tdl-tdark text-white;
+  }
+
+  /* Scientific glow effect */
+  .glow-scientific {
+    box-shadow: 0 0 20px hsl(var(--scientific-glow) / 0.3),
+      0 0 40px hsl(var(--scientific-glow) / 0.1);
+  }
+
+  /* Evidence score gradient */
+  .evidence-gradient {
+    background: linear-gradient(90deg,
+        hsl(var(--tdl-tdark)) 0%,
+        hsl(var(--tdl-tbio)) 33%,
+        hsl(var(--tdl-tchem)) 66%,
+        hsl(var(--tdl-tclin)) 100%);
+  }
+}
