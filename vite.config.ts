@@ -13,7 +13,10 @@ export default defineConfig(({ mode }) => ({
     // dev tape fix
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        // Proxy target should be the BASE URL only.
+        // The app appends "/api/v1" to requests, so if we include it here,
+        // it results in a double path (e.g., .../tictac/api/v1/api/v1).
+        target: "https://habanero.health.unm.edu/tictac",
         changeOrigin: true,
       },
     },
