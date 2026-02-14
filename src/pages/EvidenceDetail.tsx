@@ -1,3 +1,8 @@
+/*
+  Evidence Detail Page. 
+  Loads one disease-target and renders its full detail page.
+*/
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ExternalLink, FlaskConical, FileText, Beaker, TestTube } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,8 +14,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { TDLBadge } from '@/components/TDLBadge';
-import { getAssociationById } from '@/data/mockData';
-import { REFERENCE_TYPE_WEIGHTS, type ReferenceType, type Evidence } from '@/types/tictac';
+import { fetchAssociationById } from '@/lib/api';
+import { REFERENCE_TYPE_WEIGHTS, type ReferenceType, type Evidence, type DiseaseTargetAssociation } from '@/types/tictac';
 import { cn } from '@/lib/utils';
 
 const REFERENCE_TYPE_INFO: Record<
@@ -59,15 +64,17 @@ const EvidenceCard = ({ evidence }: { evidence: Evidence }) => {
               {evidence.authors} • {evidence.journal} ({evidence.year})
             </p>
             <div className="flex flex-wrap gap-2">
-              <a
-                href={`https://clinicaltrials.gov/study/${evidence.nctId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-              >
-                {evidence.nctId}
-                <ExternalLink className="h-3 w-3" />
-              </a>
+              {evidence.nctId !== 'N/A' && (
+                <a
+                  href={`https://clinicaltrials.gov/study/${evidence.nctId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                >
+                  {evidence.nctId}
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
               {evidence.pmid && (
                 <a
                   href={`https://pubmed.ncbi.nlm.nih.gov/${evidence.pmid}`}
@@ -89,7 +96,54 @@ const EvidenceCard = ({ evidence }: { evidence: Evidence }) => {
 
 const EvidenceDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const association = id ? getAssociationById(id) : undefined;
+  const [association, setAssociation] = useState<DiseaseTargetAssociation | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // When ID changes do API request
+  useEffect(() => {
+    const load = async () => {
+      if (!id) {
+        setAssociation(null);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const result = await fetchAssociationById(id);
+        setAssociation(result);
+      } catch {
+        setAssociation(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void load();
+  }, [id]);
+
+  // Organize evidence by 3 types
+  const groupedEvidence = useMemo(() => {
+    if (!association) {
+      return { RESULT: [], BACKGROUND: [], DERIVED: [] } as Record<ReferenceType, Evidence[]>;
+    }
+
+    return association.evidence.reduce(
+      (acc, ev) => {
+        acc[ev.referenceType].push(ev);
+        return acc;
+      },
+      { RESULT: [], BACKGROUND: [], DERIVED: [] } as Record<ReferenceType, Evidence[]>
+    );
+  }, [association]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">
+        Loading...
+      </div>
+    );
+  }
 
   if (!association) {
     return (
@@ -110,15 +164,6 @@ const EvidenceDetail = () => {
       </div>
     );
   }
-
-  // Group evidence by reference type
-  const groupedEvidence = association.evidence.reduce(
-    (acc, ev) => {
-      acc[ev.referenceType].push(ev);
-      return acc;
-    },
-    { RESULT: [], BACKGROUND: [], DERIVED: [] } as Record<ReferenceType, Evidence[]>
-  );
 
   const scoreGradient = `linear-gradient(90deg, hsl(var(--tdl-tdark)) 0%, hsl(var(--tdl-tbio)) 33%, hsl(var(--tdl-tchem)) 66%, hsl(var(--tdl-tclin)) 100%)`;
 

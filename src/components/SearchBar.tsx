@@ -1,10 +1,14 @@
+/*
+  Search bar.
+*/
+
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { searchDiseases, searchGenes } from '@/data/mockData';
-import type { Disease, Gene, SearchResult } from '@/types/tictac';
+import { fetchDiseaseSearch, fetchTargetSearch } from '@/lib/api';
+import type { SearchResult } from '@/types/tictac';
 import { cn } from '@/lib/utils';
 
 interface SearchBarProps {
@@ -26,28 +30,39 @@ export const SearchBar = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
-    const search = useCallback((q: string) => {
+    const search = useCallback(async (q: string) => {
+        // Asking for more than 2 chars for results
         if (q.length < 2) {
             setResults([]);
             return;
         }
 
-        const diseases = searchDiseases(q).map((d): SearchResult => ({
-            type: 'disease',
-            id: d.doid,
-            name: d.name,
-            subtitle: `${d.doid} • ${d.associationCount} targets`,
-        }));
+        // API Request
+        try {
+            const [diseases, targets] = await Promise.all([
+                fetchDiseaseSearch(q, 4),
+                fetchTargetSearch(q, 4),
+            ]);
 
-        const genes = searchGenes(q).map((g): SearchResult => ({
-            type: 'gene',
-            id: g.symbol,
-            name: g.symbol,
-            subtitle: `${g.name} • ${g.associationCount} diseases`,
-        }));
+            const diseaseResults: SearchResult[] = diseases.map((d) => ({
+                type: 'disease',
+                id: d.doid,
+                name: d.disease_name,
+                subtitle: d.doid,
+            }));
 
-        setResults([...diseases.slice(0, 4), ...genes.slice(0, 4)]);
-        setSelectedIndex(-1);
+            const geneResults: SearchResult[] = targets.map((t) => ({
+                type: 'gene',
+                id: t.gene_symbol,
+                name: t.gene_symbol,
+                subtitle: `${t.uniprot} • ${t.idgtdl}`,
+            }));
+
+            setResults([...diseaseResults, ...geneResults]);
+            setSelectedIndex(-1);
+        } catch {
+            setResults([]);
+        }
     }, []);
 
     const handleSelect = useCallback((result: SearchResult) => {
@@ -78,7 +93,9 @@ export const SearchBar = ({
     }, [results, selectedIndex, handleSelect]);
 
     useEffect(() => {
-        const timer = setTimeout(() => search(query), 150);
+        const timer = setTimeout(() => {
+            void search(query);
+        }, 200);
         return () => clearTimeout(timer);
     }, [query, search]);
 

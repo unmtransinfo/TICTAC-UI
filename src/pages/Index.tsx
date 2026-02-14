@@ -1,12 +1,92 @@
+/*
+  Home page. Fetches overall stats and sample diseases, 
+  then renders everything to the dashboard.
+*/
+
 import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Database, Search, GitBranch, FlaskConical, Target, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MolecularBackground } from '@/components/MolecularBackground';
 import { SearchBar } from '@/components/SearchBar';
 import { TDLBadge } from '@/components/TDLBadge';
-import { platformStats, mockDiseases } from '@/data/mockData';
+import { fetchAssociationSummary, fetchCounts } from '@/lib/api';
+
+// Default mapping
+const FALLBACK_STATS = {
+  studies: '0',
+  targets: '0',
+  diseases: '0',
+  publications: '0',
+};
+
+// Helper function
+const formatCount = (value: unknown): string => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n.toLocaleString() : '0';
+};
 
 const Index = () => {
+  const [stats, setStats] = useState(FALLBACK_STATS);
+  const [popularDiseases, setPopularDiseases] = useState<Array<{ doid: string; name: string }>>([]);
+
+
+  useEffect(() => {
+    const load = async () => {
+
+      // API Request for /meta/counts
+      // stats
+      try {
+        const counts = await fetchCounts();
+
+        setStats({
+          studies: formatCount(counts.studies),
+          targets: formatCount(counts.targets),
+          diseases: formatCount(counts.diseases),
+          publications: formatCount(counts.publications),
+        });
+      } catch {
+        setStats(FALLBACK_STATS);
+      }
+
+
+      try {
+        const rows = await fetchAssociationSummary({ limit: 30 });
+
+        // Pick first unique diseases from summary rows for quick links. 3
+        // popularDiseases
+        const unique = new Map<string, string>();
+        rows.forEach((row) => {
+          if (!unique.has(row.diseaseId)) {
+            unique.set(row.diseaseId, row.diseaseName);
+          }
+        });
+
+        setPopularDiseases(
+          Array.from(unique.entries())
+            .slice(0, 3)
+            .map(([doid, name]) => ({ doid, name }))
+        );
+      } catch {
+        setPopularDiseases([]);
+      }
+    };
+
+    void load();
+  }, []);
+
+
+  // Setting stats!!!
+  const statCards = useMemo(
+    () => [
+      { label: 'Clinical Trials', value: stats.studies, icon: Database },
+      { label: 'Gene Targets', value: stats.targets, icon: Target },
+      { label: 'Diseases', value: stats.diseases, icon: FlaskConical },
+      { label: 'Publications', value: stats.publications, icon: FileText },
+    ],
+    [stats]
+  );
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -41,27 +121,24 @@ const Index = () => {
             </div>
 
             {/* Quick Links */}
-            <div className="flex flex-wrap justify-center gap-3 mb-16">
-              <span className="text-muted-foreground text-sm">Popular:</span>
-              {mockDiseases.slice(0, 3).map((disease) => (
-                <Link
-                  key={disease.id}
-                  to={`/dashboard?disease=${encodeURIComponent(disease.doid)}`}
-                  className="text-sm text-primary hover:underline"
-                >
-                  {disease.name}
-                </Link>
-              ))}
-            </div>
+            {popularDiseases.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-3 mb-16">
+                <span className="text-muted-foreground text-sm">Popular:</span>
+                {popularDiseases.map((disease) => (
+                  <Link
+                    key={disease.doid}
+                    to={`/dashboard?disease=${encodeURIComponent(disease.doid)}`}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    {disease.name}
+                  </Link>
+                ))}
+              </div>
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              {[
-                { label: 'Clinical Trials', value: platformStats.clinicalTrials, icon: Database },
-                { label: 'Gene Targets', value: platformStats.geneTargets, icon: Target },
-                { label: 'Diseases', value: platformStats.diseases, icon: FlaskConical },
-                { label: 'Publications', value: platformStats.publications, icon: FileText },
-              ].map((stat) => (
+              {statCards.map((stat) => (
                 <div
                   key={stat.label}
                   className="p-6 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50"
@@ -114,7 +191,7 @@ const Index = () => {
                   'Drill into any association to see the complete evidence trail—clinical trials, publications, and citations.',
                 icon: GitBranch,
               },
-            ].map((item, index) => (
+            ].map((item) => (
               <div
                 key={item.step}
                 className="relative p-8 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-colors group"

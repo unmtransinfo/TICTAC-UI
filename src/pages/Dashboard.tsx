@@ -1,4 +1,9 @@
-import { useMemo } from 'react';
+/*
+  Dashboard page. Reads query params, fetches association data from the API, 
+  computes stats, and renders charts + table
+*/
+
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft, FlaskConical, Target, FileText, Beaker } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,81 +11,99 @@ import { SearchBar } from '@/components/SearchBar';
 import { EvidenceScatterPlot } from '@/components/EvidenceScatterPlot';
 import { EvidenceTable } from '@/components/EvidenceTable';
 import { TDLBadge } from '@/components/TDLBadge';
-import {
-  mockDiseases,
-  mockGenes,
-  getAssociationsByDisease,
-  getAssociationsByGene,
-  mockAssociations,
-} from '@/data/mockData';
+import { fetchAssociationSummary } from '@/lib/api';
+import type { DiseaseTargetAssociation } from '@/types/tictac';
+
 
 const Dashboard = () => {
   const [searchParams] = useSearchParams();
-  const diseaseId = searchParams.get('disease');
-  const geneSymbol = searchParams.get('gene');
+  const diseaseId = searchParams.get('disease') ?? undefined;
+  const geneSymbol = searchParams.get('gene') ?? undefined;
 
-  const { data, title, subtitle, stats } = useMemo(() => {
+  const [data, setData] = useState<DiseaseTargetAssociation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // API Request
+  useEffect(() => {
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const rows = await fetchAssociationSummary({
+          doid: diseaseId,
+          gene_symbol: geneSymbol,
+          limit: 100,
+        });
+        setData(rows);
+      } catch {
+        setData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void load();
+  }, [diseaseId, geneSymbol]);
+
+  // Rturn title
+  const title = useMemo(() => {
+    if (diseaseId && data.length > 0) return data[0].diseaseName;
+    if (geneSymbol && data.length > 0) return data[0].geneSymbol;
+    if (geneSymbol) return geneSymbol;
+    if (diseaseId) return diseaseId;
+    return 'All Disease-Target Associations';
+  }, [data, diseaseId, geneSymbol]);
+
+  // Return subtitle
+  const subtitle = useMemo(() => {
+    if (diseaseId && data.length > 0) return data[0].diseaseId;
+    if (geneSymbol && data.length > 0) return data[0].geneName;
+    return 'Explore the complete TICTAC dataset';
+  }, [data, diseaseId, geneSymbol]);
+
+  // Return stats
+  const stats = useMemo(() => {
     if (diseaseId) {
-      const disease = mockDiseases.find((d) => d.doid === diseaseId);
-      const associations = getAssociationsByDisease(diseaseId);
-      const tclinCount = associations.filter((a) => a.tdl === 'Tclin').length;
-      const avgScore =
-        associations.reduce((acc, a) => acc + a.meanRankScore, 0) / associations.length || 0;
+      const tclinCount = data.filter((a) => a.tdl === 'Tclin').length;
+      const avgScore = data.reduce((acc, a) => acc + a.meanRankScore, 0) / data.length || 0;
 
-      return {
-        data: associations,
-        title: disease?.name || diseaseId,
-        subtitle: disease?.doid || '',
-        stats: [
-          { label: 'Targets', value: associations.length, icon: Target },
-          { label: 'Tclin Targets', value: tclinCount, icon: Beaker },
-          { label: 'Avg. Score', value: avgScore.toFixed(1), icon: FlaskConical },
-          {
-            label: 'Publications',
-            value: associations.reduce((acc, a) => acc + a.nPub, 0).toLocaleString(),
-            icon: FileText,
-          },
-        ],
-      };
+      return [
+        { label: 'Targets', value: data.length, icon: Target },
+        { label: 'Tclin Targets', value: tclinCount, icon: Beaker },
+        { label: 'Avg. Score', value: avgScore.toFixed(1), icon: FlaskConical },
+        {
+          label: 'Publications',
+          value: data.reduce((acc, a) => acc + a.nPub, 0).toLocaleString(),
+          icon: FileText,
+        },
+      ];
     }
 
     if (geneSymbol) {
-      const gene = mockGenes.find((g) => g.symbol === geneSymbol);
-      const associations = getAssociationsByGene(geneSymbol);
-      const avgScore =
-        associations.reduce((acc, a) => acc + a.meanRankScore, 0) / associations.length || 0;
+      const avgScore = data.reduce((acc, a) => acc + a.meanRankScore, 0) / data.length || 0;
 
-      return {
-        data: associations,
-        title: gene?.symbol || geneSymbol,
-        subtitle: gene?.name || '',
-        stats: [
-          { label: 'Diseases', value: associations.length, icon: FlaskConical },
-          { label: 'TDL', value: gene?.tdl || 'Unknown', icon: Target },
-          { label: 'Avg. Score', value: avgScore.toFixed(1), icon: Beaker },
-          {
-            label: 'Publications',
-            value: associations.reduce((acc, a) => acc + a.nPub, 0).toLocaleString(),
-            icon: FileText,
-          },
-        ],
-      };
+      return [
+        { label: 'Diseases', value: data.length, icon: FlaskConical },
+        { label: 'TDL', value: data[0]?.tdl ?? 'Unknown', icon: Target },
+        { label: 'Avg. Score', value: avgScore.toFixed(1), icon: Beaker },
+        {
+          label: 'Publications',
+          value: data.reduce((acc, a) => acc + a.nPub, 0).toLocaleString(),
+          icon: FileText,
+        },
+      ];
     }
 
-    // Default: show all associations
-    const tclinCount = mockAssociations.filter((a) => a.tdl === 'Tclin').length;
-    return {
-      data: mockAssociations,
-      title: 'All Disease-Target Associations',
-      subtitle: 'Explore the complete TICTAC dataset',
-      stats: [
-        { label: 'Associations', value: mockAssociations.length, icon: Target },
-        { label: 'Diseases', value: mockDiseases.length, icon: FlaskConical },
-        { label: 'Genes', value: mockGenes.length, icon: Beaker },
-        { label: 'Tclin Targets', value: tclinCount, icon: FileText },
-      ],
-    };
-  }, [diseaseId, geneSymbol]);
+    const uniqueDiseases = new Set(data.map((d) => d.diseaseId)).size;
+    const uniqueGenes = new Set(data.map((d) => d.geneSymbol)).size;
+    const tclinCount = data.filter((a) => a.tdl === 'Tclin').length;
+
+    return [
+      { label: 'Associations', value: data.length, icon: Target },
+      { label: 'Diseases', value: uniqueDiseases, icon: FlaskConical },
+      { label: 'Genes', value: uniqueGenes, icon: Beaker },
+      { label: 'Tclin Targets', value: tclinCount, icon: FileText },
+    ];
+  }, [data, diseaseId, geneSymbol]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -112,9 +135,7 @@ const Dashboard = () => {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl md:text-4xl font-bold">{title}</h1>
-            {geneSymbol && mockGenes.find((g) => g.symbol === geneSymbol) && (
-              <TDLBadge tdl={mockGenes.find((g) => g.symbol === geneSymbol)!.tdl} />
-            )}
+            {geneSymbol && data[0]?.tdl && <TDLBadge tdl={data[0].tdl} />}
           </div>
           <p className="text-lg text-muted-foreground">{subtitle}</p>
         </div>
@@ -135,7 +156,9 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {data.length > 0 ? (
+        {isLoading ? (
+          <div className="text-center py-16 text-muted-foreground">Loading...</div>
+        ) : data.length > 0 ? (
           <>
             {/* Scatter Plot */}
             <div className="mb-8">
