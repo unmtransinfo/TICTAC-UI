@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
         // Proxy target should be the BASE URL only.
         // The app appends "/api/v1" to requests, so if we include it here,
         // it results in a double path (e.g., .../tictac/api/v1/api/v1).
-        target: "https://habanero.health.unm.edu/tictac",
+        target: "http://localhost:8000/tictac",
         changeOrigin: true,
       },
     },
