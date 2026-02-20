@@ -31,7 +31,7 @@ const Dashboard = () => {
         const rows = await fetchAssociationSummary({
           doid: diseaseId,
           gene_symbol: geneSymbol,
-          limit: 100,
+          limit: 1000,
         });
         setData(rows);
       } catch {
