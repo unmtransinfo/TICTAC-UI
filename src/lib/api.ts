@@ -13,9 +13,7 @@ const buildUrl = (path: string, params?: Record<string, string | number | boolea
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   const normalizedBase = API_BASE_URL.replace(/\/+$/, '');
 
-  const rawUrl = /^https?:\/\//i.test(normalizedBase)
-    ? `${normalizedBase}${normalizedPath}`
-    : `${normalizedBase}${normalizedPath}`;
+  const rawUrl = `${normalizedBase}${normalizedPath}`;
 
   // Relative API base (e.g. /api/v1) works with Vite proxy in dev
   const url = new URL(rawUrl, window.location.origin);
