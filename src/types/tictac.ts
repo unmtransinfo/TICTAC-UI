@@ -33,22 +33,6 @@ export interface DiseaseTargetAssociation {
   evidence: Evidence[];
 }
 
-export interface Disease {
-  id: string;
-  doid: string;
-  name: string;
-  synonyms: string[];
-  associationCount: number;
-}
-
-export interface Gene {
-  symbol: string;
-  name: string;
-  uniprotId: string;
-  tdl: TDL;
-  associationCount: number;
-}
-
 export interface SearchResult {
   type: 'disease' | 'gene';
   id: string;

@@ -32,7 +32,7 @@ const buildUrl = (path: string, params?: Record<string, string | number | boolea
 
 // API request main 
 const fetchJson = async <T>(path: string, params?: Record<string, string | number | boolean | undefined>): Promise<T> => {
-  
+
   const response = await fetch(buildUrl(path, params));
   if (!response.ok) {
     throw new Error(`API request failed: ${response.status}`);
@@ -122,7 +122,7 @@ const mapEvidenceRow = (row: EvidenceRow, index: number): Evidence => {
 
 
 // API endpoints all below
-export const fetchHealth = async (): Promise<{ status: string }> => {
+const fetchHealth = async (): Promise<{ status: string }> => {
   return fetchJson<{ status: string }>('/meta/health');
 };
 
@@ -142,7 +142,7 @@ export const fetchAssociationSummary = async (params: {
   return asArray<SummaryRow>(payload).map(mapSummaryRow);
 };
 
-export const fetchAssociationEvidence = async (params: {
+const fetchAssociationEvidence = async (params: {
   doid?: string;
   uniprot?: string;
   disease_name?: string;
