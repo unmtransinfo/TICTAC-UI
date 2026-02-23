@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpDown, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
 import {
@@ -24,13 +24,51 @@ type SortOrder = 'asc' | 'desc';
 
 const TDL_ORDER = { Tclin: 0, Tchem: 1, Tbio: 2, Tdark: 3 };
 
+const SortIcon = ({ columnKey, sortKey, sortOrder }: { columnKey: SortKey; sortKey: SortKey; sortOrder: SortOrder }) => {
+    if (sortKey !== columnKey) {
+        return <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />;
+    }
+    return sortOrder === 'asc' ? (
+        <ArrowUp className="ml-1 h-3 w-3" />
+    ) : (
+        <ArrowDown className="ml-1 h-3 w-3" />
+    );
+};
+
+const SortableHeader = ({
+    columnKey,
+    children,
+    sortKey,
+    sortOrder,
+    onSort,
+}: {
+    columnKey: SortKey;
+    children: React.ReactNode;
+    sortKey: SortKey;
+    sortOrder: SortOrder;
+    onSort: (key: SortKey) => void;
+}) => (
+    <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onSort(columnKey)}
+        className={cn(
+            '-ml-3 h-8 font-medium',
+            sortKey === columnKey && 'text-primary'
+        )}
+    >
+        {children}
+        <SortIcon columnKey={columnKey} sortKey={sortKey} sortOrder={sortOrder} />
+    </Button>
+);
+
 export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
     const [sortKey, setSortKey] = useState<SortKey>('meanRankScore');
     const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
     const sortedData = useMemo(() => {
         return [...data].sort((a, b) => {
-            let comparison = 0;
+            let comparison: number;
 
             if (sortKey === 'tdl') {
                 comparison = TDL_ORDER[a.tdl] - TDL_ORDER[b.tdl];
@@ -44,46 +82,16 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
         });
     }, [data, sortKey, sortOrder]);
 
-    const handleSort = (key: SortKey) => {
-        if (sortKey === key) {
-            setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-        } else {
-            setSortKey(key);
+    const handleSort = useCallback((key: SortKey) => {
+        setSortKey((prevKey) => {
+            if (prevKey === key) {
+                setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+                return prevKey;
+            }
             setSortOrder('desc');
-        }
-    };
-
-    const SortIcon = ({ columnKey }: { columnKey: SortKey }) => {
-        if (sortKey !== columnKey) {
-            return <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />;
-        }
-        return sortOrder === 'asc' ? (
-            <ArrowUp className="ml-1 h-3 w-3" />
-        ) : (
-            <ArrowDown className="ml-1 h-3 w-3" />
-        );
-    };
-
-    const SortableHeader = ({
-        columnKey,
-        children,
-    }: {
-        columnKey: SortKey;
-        children: React.ReactNode;
-    }) => (
-        <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleSort(columnKey)}
-            className={cn(
-                '-ml-3 h-8 font-medium',
-                sortKey === columnKey && 'text-primary'
-            )}
-        >
-            {children}
-            <SortIcon columnKey={columnKey} />
-        </Button>
-    );
+            return key;
+        });
+    }, []);
 
     return (
         <div className={cn('rounded-lg border bg-card', className)}>
@@ -91,22 +99,22 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
                 <TableHeader>
                     <TableRow>
                         <TableHead>
-                            <SortableHeader columnKey="geneSymbol">Gene</SortableHeader>
+                            <SortableHeader columnKey="geneSymbol" sortKey={sortKey} sortOrder={sortOrder} onSort={handleSort}>Gene</SortableHeader>
                         </TableHead>
                         <TableHead>
-                            <SortableHeader columnKey="tdl">TDL</SortableHeader>
+                            <SortableHeader columnKey="tdl" sortKey={sortKey} sortOrder={sortOrder} onSort={handleSort}>TDL</SortableHeader>
                         </TableHead>
                         <TableHead className="text-right">
-                            <SortableHeader columnKey="meanRankScore">Score</SortableHeader>
+                            <SortableHeader columnKey="meanRankScore" sortKey={sortKey} sortOrder={sortOrder} onSort={handleSort}>Score</SortableHeader>
                         </TableHead>
                         <TableHead className="text-right">
-                            <SortableHeader columnKey="nPub">Pubs</SortableHeader>
+                            <SortableHeader columnKey="nPub" sortKey={sortKey} sortOrder={sortOrder} onSort={handleSort}>Pubs</SortableHeader>
                         </TableHead>
                         <TableHead className="text-right">
-                            <SortableHeader columnKey="nStud">Studies</SortableHeader>
+                            <SortableHeader columnKey="nStud" sortKey={sortKey} sortOrder={sortOrder} onSort={handleSort}>Studies</SortableHeader>
                         </TableHead>
                         <TableHead className="text-right">
-                            <SortableHeader columnKey="nDrug">Drugs</SortableHeader>
+                            <SortableHeader columnKey="nDrug" sortKey={sortKey} sortOrder={sortOrder} onSort={handleSort}>Drugs</SortableHeader>
                         </TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
