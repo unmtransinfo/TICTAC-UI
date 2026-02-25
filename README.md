@@ -52,19 +52,6 @@ This project is the frontend mapping to the TICTAC-API, built using modern web d
    Navigate to [http://localhost:5173/tictac/](http://localhost:5173/tictac/) in your browser. 
    *(Note: The vite config sets a base URL of `/tictac/`)*
 
-## Project Structure
-
-```text
-src/
-├── components/          # Reusable UI elements (SearchBar, EvidenceTable, scatter plots, etc.)
-│   └── ui/              # Base shadcn/ui components (buttons, badges, toaster)
-├── hooks/               # Custom React hooks
-├── lib/                 # Utility functions (tailwind merge) and API integration logic (fetchCounts, fetchAssociationSummary, etc.)
-├── pages/               # Top-level page components (Index, Dashboard, EvidenceDetail, NotFound)
-├── types/               # TypeScript interfaces and type definitions (Evidence, ReferenceType, TDL, DiseaseTargetAssociation)
-└── App.tsx              # Main application root, query clients, toaster setup, and routing declaration
-```
-
 ## Available Scripts
 
 - `npm run dev` - Starts the Vite development server.
