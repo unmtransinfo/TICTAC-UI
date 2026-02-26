@@ -74,6 +74,7 @@ const normalizeTdl = (value: unknown): TDL => {
 
 type SummaryRow = Record<string, unknown>;
 type EvidenceRow = Record<string, unknown>;
+type ProvenanceRow = Record<string, unknown>;
 
 
 // Mapping Helpers
@@ -140,6 +141,46 @@ export const fetchAssociationSummary = async (params: {
 }): Promise<DiseaseTargetAssociation[]> => {
   const payload = await fetchJson<unknown>('/associations/summary', params);
   return asArray<SummaryRow>(payload).map(mapSummaryRow);
+};
+
+export interface ProvenanceSummaryItem {
+  doid: string;
+  uniprot: string;
+  gene_symbol: string;
+  nct_id: string;
+  pmid?: string;
+  citation?: string;
+  disease_target: string;
+  pubmed_url?: string;
+}
+
+const mapProvenanceRow = (row: ProvenanceRow): ProvenanceSummaryItem => {
+  const doid = readString(row.doid);
+  const uniprot = readString(row.uniprot);
+
+  return {
+    doid,
+    uniprot,
+    gene_symbol: readString(row.gene_symbol),
+    nct_id: readString(row.nct_id),
+    pmid: readString(row.pmid) || undefined,
+    citation: readString(row.citation) || undefined,
+    disease_target: readString(row.disease_target, `${doid}_${uniprot}`),
+    pubmed_url: readString(row.pubmed_url) || undefined,
+  };
+};
+
+export const fetchProvenanceSummary = async (params: {
+  doid?: string;
+  gene_symbol?: string;
+  uniprot?: string;
+  nct_id?: string;
+  pmid?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<ProvenanceSummaryItem[]> => {
+  const payload = await fetchJson<unknown>('/associations/provenance_summary', params);
+  return asArray<ProvenanceRow>(payload).map(mapProvenanceRow);
 };
 
 const fetchAssociationEvidence = async (params: {
