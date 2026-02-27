@@ -10,7 +10,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { ArrowLeft, FlaskConical, Target, FileText, Beaker, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FlaskConical, Target, FileText, Beaker, ChevronLeft, ChevronRight, Database, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchBar } from '@/components/SearchBar';
@@ -207,11 +207,17 @@ const Dashboard = () => {
         {isAssociationMode ? (
           <>
             {(diseaseId || geneSymbol) && (
-              <Link to={`/dashboard?view=provenance${diseaseId ? `&disease=${encodeURIComponent(diseaseId)}` : ''}${geneSymbol ? `&gene=${encodeURIComponent(geneSymbol)}` : ''}`}>
-                <Button variant="ghost" size="sm" className="mb-4 -ml-2">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  View Provenance Dashboard for {title}
-                </Button>
+              <Link
+                to={`/dashboard?view=provenance${diseaseId ? `&disease=${encodeURIComponent(diseaseId)}` : ''}${geneSymbol ? `&gene=${encodeURIComponent(geneSymbol)}` : ''}`}
+                className="group inline-flex items-center gap-3 p-1 pr-4 mb-8 rounded-full bg-primary/5 border border-primary/10 hover:bg-primary/10 hover:border-primary/20 transition-all shadow-sm active:scale-[0.98]"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                  <Database className="h-4 w-4" />
+                </div>
+                <span className="text-sm font-medium">
+                  View Provenance Dashboard for <span className="text-primary font-bold">{title}</span>
+                </span>
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
               </Link>
             )}
 
@@ -289,16 +295,25 @@ const Dashboard = () => {
           </>
         ) : (
           <>
-            <div className="mb-6">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                {diseaseId || geneSymbol ? `Provenance: ${title}` : 'Provenance Dashboard'}
-              </h1>
+            <div className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-transparent border border-primary/10 shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <Database className="h-8 w-8 text-primary" />
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                  {diseaseId || geneSymbol ? `Provenance Dashboard for ${title}` : 'Provenance Dashboard'}
+                </h1>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                {diseaseId || geneSymbol
+                  ? `Detailed clinical trial evidence and publication citations for ${title}.`
+                  : 'Aggregate view of evidentiary support across the TICTAC dataset.'}
+              </p>
               {(diseaseId || geneSymbol) && (
-                <Link to={`/dashboard?${diseaseId ? `disease=${encodeURIComponent(diseaseId)}` : ''}${geneSymbol ? `gene=${encodeURIComponent(geneSymbol)}` : ''}`}>
-                  <Button variant="ghost" size="sm" className="-ml-2">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Association Summary
-                  </Button>
+                <Link
+                  to={`/dashboard?${diseaseId ? `disease=${encodeURIComponent(diseaseId)}` : ''}${geneSymbol ? `gene=${encodeURIComponent(geneSymbol)}` : ''}`}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:opacity-80 transition-opacity group"
+                >
+                  <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+                  Return to Association Summary
                 </Link>
               )}
             </div>
