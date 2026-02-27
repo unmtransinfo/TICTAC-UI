@@ -275,9 +275,6 @@ const Dashboard = () => {
           <>
             <div className="mb-6">
               <h1 className="text-3xl md:text-4xl font-bold mb-2">Provenance Summary Dashboard</h1>
-              <p className="text-muted-foreground">
-                Filters supported: UniProt and Reference (NCT ID or PMID).
-              </p>
             </div>
 
 
