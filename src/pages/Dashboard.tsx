@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/table';
 
 const Dashboard = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const diseaseId = searchParams.get('disease') ?? undefined;
   const geneSymbol = searchParams.get('gene') ?? undefined;
 
@@ -131,8 +131,8 @@ const Dashboard = () => {
   // -------------------------
   const [provenanceRows, setProvenanceRows] = useState<ProvenanceSummaryItem[]>([]);
   const [isLoadingProvenance, setIsLoadingProvenance] = useState(true);
-  const [uniprotInput, setUniprotInput] = useState(searchParams.get('uniprot') ?? '');
-  const [referenceInput, setReferenceInput] = useState(searchParams.get('reference') ?? '');
+  const [uniprotInput, setUniprotInput] = useState('');
+  const [referenceInput, setReferenceInput] = useState('');
   const [pageSize, setPageSize] = useState(20);
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -142,16 +142,7 @@ const Dashboard = () => {
     const load = async () => {
       setIsLoadingProvenance(true);
       try {
-        const uniprot = searchParams.get('uniprot') ?? undefined;
-        const reference = (searchParams.get('reference') ?? '').trim();
-        const isNct = reference.toUpperCase().startsWith('NCT');
-
-        const rows = await fetchProvenanceSummary({
-          uniprot,
-          nct_id: reference && isNct ? reference : undefined,
-          pmid: reference && !isNct ? reference : undefined,
-          limit: 500,
-        });
+        const rows = await fetchProvenanceSummary({ limit: 500 });
         setProvenanceRows(rows);
       } catch {
         setProvenanceRows([]);
@@ -161,33 +152,37 @@ const Dashboard = () => {
     };
 
     void load();
-  }, [isAssociationMode, searchParams]);
+  }, [isAssociationMode]);
 
-  const applyProvenanceFilters = () => {
-    const next = new URLSearchParams(searchParams);
+  // Live client-side filtering
+  const filteredRows = useMemo(() => {
+    const u = uniprotInput.trim().toLowerCase();
+    const r = referenceInput.trim().toLowerCase();
+    if (!u && !r) return provenanceRows;
+    return provenanceRows.filter((row) => {
+      const matchUniprot = !u || (row.uniprot ?? '').toLowerCase().includes(u);
+      const matchRef =
+        !r ||
+        (row.nct_id ?? '').toLowerCase().includes(r) ||
+        String(row.pmid ?? '').toLowerCase().includes(r) ||
+        (row.citation ?? '').toLowerCase().includes(r);
+      return matchUniprot && matchRef;
+    });
+  }, [provenanceRows, uniprotInput, referenceInput]);
 
-    if (uniprotInput.trim()) next.set('uniprot', uniprotInput.trim());
-    else next.delete('uniprot');
-
-    if (referenceInput.trim()) next.set('reference', referenceInput.trim());
-    else next.delete('reference');
-
-    setSearchParams(next);
-  };
-
-  // Pagination logic (pre-live-filtering)
-  const totalPages = Math.max(1, Math.ceil(provenanceRows.length / pageSize));
-  const paginatedRows = provenanceRows.slice(
+  // Pagination logic (operates on filteredRows)
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  const paginatedRows = filteredRows.slice(
     currentPage * pageSize,
     currentPage * pageSize + pageSize,
   );
-  const showingFrom = provenanceRows.length === 0 ? 0 : currentPage * pageSize + 1;
-  const showingTo = Math.min((currentPage + 1) * pageSize, provenanceRows.length);
+  const showingFrom = filteredRows.length === 0 ? 0 : currentPage * pageSize + 1;
+  const showingTo = Math.min((currentPage + 1) * pageSize, filteredRows.length);
 
-  // Reset page when pageSize changes
+  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(0);
-  }, [pageSize]);
+  }, [uniprotInput, referenceInput, pageSize]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -294,7 +289,7 @@ const Dashboard = () => {
             </div>
 
 
-            <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] mb-6">
+            <div className="grid gap-3 md:grid-cols-2 mb-6">
               <Input
                 value={uniprotInput}
                 onChange={(e) => setUniprotInput(e.target.value)}
@@ -305,7 +300,6 @@ const Dashboard = () => {
                 onChange={(e) => setReferenceInput(e.target.value)}
                 placeholder="Reference (NCT ID or PMID)"
               />
-              <Button onClick={applyProvenanceFilters}>Apply</Button>
             </div>
 
             <div className="rounded-lg border bg-card">
@@ -327,10 +321,14 @@ const Dashboard = () => {
                         Loading provenance summary...
                       </TableCell>
                     </TableRow>
-                  ) : provenanceRows.length === 0 ? (
+                  ) : filteredRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                        No provenance rows found.
+                        {uniprotInput.trim() || referenceInput.trim() ? (
+                          <>No results found for <strong>{uniprotInput.trim() || referenceInput.trim()}</strong></>
+                        ) : (
+                          'No provenance rows found.'
+                        )}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -378,7 +376,7 @@ const Dashboard = () => {
             </div>
 
             {/* Pagination bar */}
-            {!isLoadingProvenance && provenanceRows.length > 0 && (
+            {!isLoadingProvenance && filteredRows.length > 0 && (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
                 <div className="flex items-center gap-2 text-sm">
                   <label htmlFor="pageSize" className="text-muted-foreground">Show entries:</label>
@@ -395,7 +393,7 @@ const Dashboard = () => {
                 </div>
 
                 <span className="text-sm text-muted-foreground">
-                  Showing {showingFrom}–{showingTo} of {provenanceRows.length} entries
+                  Showing {showingFrom}–{showingTo} of {filteredRows.length} entries
                 </span>
 
                 <div className="flex items-center gap-1">
