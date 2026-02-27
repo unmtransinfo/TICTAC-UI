@@ -182,7 +182,7 @@ const Dashboard = () => {
               <FlaskConical className="h-6 w-6" />
               <span className="font-bold text-lg">TICTAC</span>
             </Link>
-            <SearchBar className="flex-1 max-w-xl" />
+            {isAssociationMode && <SearchBar className="flex-1 max-w-xl" />}
           </div>
         </div>
       </header>
@@ -237,15 +237,14 @@ const Dashboard = () => {
                         {(['Tclin', 'Tchem', 'Tbio', 'Tdark'] as const).map((tdl) => (
                           <div key={tdl} className="flex items-center gap-1.5">
                             <div
-                              className={`w-3 h-3 rounded-full ${
-                                tdl === 'Tclin'
+                              className={`w-3 h-3 rounded-full ${tdl === 'Tclin'
                                   ? 'bg-tdl-tclin'
                                   : tdl === 'Tchem'
-                                  ? 'bg-tdl-tchem'
-                                  : tdl === 'Tbio'
-                                  ? 'bg-tdl-tbio'
-                                  : 'bg-tdl-tdark'
-                              }`}
+                                    ? 'bg-tdl-tchem'
+                                    : tdl === 'Tbio'
+                                      ? 'bg-tdl-tbio'
+                                      : 'bg-tdl-tdark'
+                                }`}
                             />
                             <span className="text-muted-foreground">{tdl}</span>
                           </div>
