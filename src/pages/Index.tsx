@@ -236,23 +236,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-primary/10 via-background to-accent/10">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Start Exploring Evidence
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            Dive into the TICTAC database and discover evidence-backed disease-target associations.
-          </p>
-          <Button asChild size="lg" className="group">
-            <Link to="/dashboard">
-              View Dashboard
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </Button>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="py-8 border-t border-border/50">
