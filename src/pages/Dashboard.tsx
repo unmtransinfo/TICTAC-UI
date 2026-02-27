@@ -238,12 +238,12 @@ const Dashboard = () => {
                           <div key={tdl} className="flex items-center gap-1.5">
                             <div
                               className={`w-3 h-3 rounded-full ${tdl === 'Tclin'
-                                  ? 'bg-tdl-tclin'
-                                  : tdl === 'Tchem'
-                                    ? 'bg-tdl-tchem'
-                                    : tdl === 'Tbio'
-                                      ? 'bg-tdl-tbio'
-                                      : 'bg-tdl-tdark'
+                                ? 'bg-tdl-tclin'
+                                : tdl === 'Tchem'
+                                  ? 'bg-tdl-tchem'
+                                  : tdl === 'Tbio'
+                                    ? 'bg-tdl-tbio'
+                                    : 'bg-tdl-tdark'
                                 }`}
                             />
                             <span className="text-muted-foreground">{tdl}</span>
@@ -278,10 +278,8 @@ const Dashboard = () => {
               <p className="text-muted-foreground">
                 Filters supported: UniProt and Reference (NCT ID or PMID).
               </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Reference type (RESULT/BACKGROUND/DERIVED) is not filterable here because this endpoint does not return `reference_type`.
-              </p>
             </div>
+
 
             <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] mb-6">
               <Input
