@@ -351,7 +351,7 @@ const Dashboard = () => {
                             '-'
                           )}
                         </TableCell>
-                        <TableCell className="max-w-[420px] truncate" title={row.citation ?? ''}>
+                        <TableCell>
                           {row.citation ?? '-'}
                         </TableCell>
                       </TableRow>
