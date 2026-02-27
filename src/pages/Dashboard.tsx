@@ -10,7 +10,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { ArrowLeft, FlaskConical, Target, FileText, Beaker } from 'lucide-react';
+import { ArrowLeft, FlaskConical, Target, FileText, Beaker, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchBar } from '@/components/SearchBar';
@@ -133,6 +133,8 @@ const Dashboard = () => {
   const [isLoadingProvenance, setIsLoadingProvenance] = useState(true);
   const [uniprotInput, setUniprotInput] = useState(searchParams.get('uniprot') ?? '');
   const [referenceInput, setReferenceInput] = useState(searchParams.get('reference') ?? '');
+  const [pageSize, setPageSize] = useState(20);
+  const [currentPage, setCurrentPage] = useState(0);
 
   useEffect(() => {
     if (isAssociationMode) return;
@@ -172,6 +174,20 @@ const Dashboard = () => {
 
     setSearchParams(next);
   };
+
+  // Pagination logic (pre-live-filtering)
+  const totalPages = Math.max(1, Math.ceil(provenanceRows.length / pageSize));
+  const paginatedRows = provenanceRows.slice(
+    currentPage * pageSize,
+    currentPage * pageSize + pageSize,
+  );
+  const showingFrom = provenanceRows.length === 0 ? 0 : currentPage * pageSize + 1;
+  const showingTo = Math.min((currentPage + 1) * pageSize, provenanceRows.length);
+
+  // Reset page when pageSize changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [pageSize]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -318,7 +334,7 @@ const Dashboard = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    provenanceRows.map((row) => (
+                    paginatedRows.map((row) => (
                       <TableRow key={`${row.disease_target}-${row.nct_id}-${row.pmid ?? 'none'}`}>
                         <TableCell>{row.doid}</TableCell>
                         <TableCell className="font-mono">{row.uniprot}</TableCell>
@@ -360,6 +376,50 @@ const Dashboard = () => {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Pagination bar */}
+            {!isLoadingProvenance && provenanceRows.length > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <label htmlFor="pageSize" className="text-muted-foreground">Show entries:</label>
+                  <select
+                    id="pageSize"
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                    className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+                  >
+                    {[20, 30, 40, 50].map((n) => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <span className="text-sm text-muted-foreground">
+                  Showing {showingFrom}–{showingTo} of {provenanceRows.length} entries
+                </span>
+
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 0}
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Prev
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage >= totalPages - 1}
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </main>
