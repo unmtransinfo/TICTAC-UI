@@ -182,7 +182,7 @@ const Dashboard = () => {
               <FlaskConical className="h-6 w-6" />
               <span className="font-bold text-lg">TICTAC</span>
             </Link>
-            {isAssociationMode && <SearchBar className="flex-1 max-w-xl" />}
+
           </div>
         </div>
       </header>
