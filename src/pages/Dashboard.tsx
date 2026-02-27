@@ -37,8 +37,9 @@ const Dashboard = () => {
   const diseaseId = searchParams.get('disease') ?? undefined;
   const geneSymbol = searchParams.get('gene') ?? undefined;
 
-  /* existing behavior preserved: so if disease/gene exists, keep old association dashboard. */
-  const isAssociationMode = Boolean(diseaseId || geneSymbol);
+  const view = searchParams.get('view');
+  /* association mode if we have params AND user hasn't explicitly asked for provenance view */
+  const isAssociationMode = Boolean((diseaseId || geneSymbol) && view !== 'provenance');
 
   // -------------------------
   // Association mode state
@@ -55,7 +56,7 @@ const Dashboard = () => {
         const rows = await fetchAssociationSummary({
           doid: diseaseId,
           gene_symbol: geneSymbol,
-          limit: 1000,
+          limit: 5000,
         });
         setData(rows);
       } catch {
@@ -142,7 +143,11 @@ const Dashboard = () => {
     const load = async () => {
       setIsLoadingProvenance(true);
       try {
-        const rows = await fetchProvenanceSummary({ limit: 500 });
+        const rows = await fetchProvenanceSummary({
+          doid: diseaseId,
+          gene_symbol: geneSymbol,
+          limit: 5000
+        });
         setProvenanceRows(rows);
       } catch {
         setProvenanceRows([]);
@@ -152,7 +157,7 @@ const Dashboard = () => {
     };
 
     void load();
-  }, [isAssociationMode]);
+  }, [isAssociationMode, diseaseId, geneSymbol]);
 
   // Live client-side filtering
   const filteredRows = useMemo(() => {
@@ -170,7 +175,12 @@ const Dashboard = () => {
     });
   }, [provenanceRows, uniprotInput, referenceInput]);
 
-  // Pagination logic (operates on filteredRows)
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [uniprotInput, referenceInput, pageSize]);
+
+  // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
   const paginatedRows = filteredRows.slice(
     currentPage * pageSize,
@@ -178,11 +188,6 @@ const Dashboard = () => {
   );
   const showingFrom = filteredRows.length === 0 ? 0 : currentPage * pageSize + 1;
   const showingTo = Math.min((currentPage + 1) * pageSize, filteredRows.length);
-
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(0);
-  }, [uniprotInput, referenceInput, pageSize]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -202,10 +207,10 @@ const Dashboard = () => {
         {isAssociationMode ? (
           <>
             {(diseaseId || geneSymbol) && (
-              <Link to="/dashboard">
+              <Link to={`/dashboard?view=provenance${diseaseId ? `&disease=${encodeURIComponent(diseaseId)}` : ''}${geneSymbol ? `&gene=${encodeURIComponent(geneSymbol)}` : ''}`}>
                 <Button variant="ghost" size="sm" className="mb-4 -ml-2">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to dashboard
+                  View Provenance Dashboard for {title}
                 </Button>
               </Link>
             )}
@@ -285,7 +290,17 @@ const Dashboard = () => {
         ) : (
           <>
             <div className="mb-6">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">Provenance Summary Dashboard</h1>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                {diseaseId || geneSymbol ? `Provenance: ${title}` : 'Provenance Dashboard'}
+              </h1>
+              {(diseaseId || geneSymbol) && (
+                <Link to={`/dashboard?${diseaseId ? `disease=${encodeURIComponent(diseaseId)}` : ''}${geneSymbol ? `gene=${encodeURIComponent(geneSymbol)}` : ''}`}>
+                  <Button variant="ghost" size="sm" className="-ml-2">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back to Association Summary
+                  </Button>
+                </Link>
+              )}
             </div>
 
 
