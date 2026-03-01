@@ -14,6 +14,7 @@ import type { DiseaseTargetAssociation, TDL } from '@/types/tictac';
 
 interface ScatterPlotProps {
     data: DiseaseTargetAssociation[];
+    yAxisKey?: 'nPub' | 'nStud' | 'nDrug';
     onPointClick?: (association: DiseaseTargetAssociation) => void;
 }
 
@@ -53,25 +54,23 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     );
 };
 
-export const EvidenceScatterPlot = ({ data, onPointClick }: ScatterPlotProps) => {
+export const EvidenceScatterPlot = ({ data, yAxisKey = 'nPub', onPointClick }: ScatterPlotProps) => {
     const navigate = useNavigate();
 
-    const handleClick = useCallback(
-        (entry: DiseaseTargetAssociation) => {
-            if (onPointClick) {
-                onPointClick(entry);
-            } else {
-                navigate(`/evidence/${entry.id}`);
-            }
-        },
-        [navigate, onPointClick]
-    );
+    const yAxisLabel = {
+        nPub: 'Publication Count',
+        nStud: 'Study Count',
+        nDrug: 'Drug Count',
+    }[yAxisKey];
 
     const chartData = data.map((d) => ({
         ...d,
         x: d.meanRankScore,
-        y: d.nPub,
+        y: d[yAxisKey],
     }));
+
+    const maxVal = Math.max(...chartData.map(d => d.y as number), 10);
+    const domainY = [0, Math.ceil(maxVal * 1.1)];
 
     return (
         <div className="w-full h-[400px]">
@@ -96,12 +95,13 @@ export const EvidenceScatterPlot = ({ data, onPointClick }: ScatterPlotProps) =>
                     <YAxis
                         type="number"
                         dataKey="y"
-                        name="Publications"
+                        name={yAxisLabel}
+                        domain={domainY}
                         tick={{ fill: 'hsl(var(--muted-foreground))' }}
                         tickLine={{ stroke: 'hsl(var(--border))' }}
                         axisLine={{ stroke: 'hsl(var(--border))' }}
                         label={{
-                            value: 'Publication Count',
+                            value: yAxisLabel,
                             angle: -90,
                             position: 'insideLeft',
                             offset: -40,
@@ -111,7 +111,16 @@ export const EvidenceScatterPlot = ({ data, onPointClick }: ScatterPlotProps) =>
                     <Tooltip content={<CustomTooltip />} />
                     <Scatter
                         data={chartData}
-                        onClick={(e) => handleClick(e as unknown as DiseaseTargetAssociation)}
+                        onClick={(e) => {
+                            const entry = (e as any).payload;
+                            if (entry) {
+                                if (onPointClick) {
+                                    onPointClick(entry);
+                                } else {
+                                    navigate(`/evidence/${entry.id}`);
+                                }
+                            }
+                        }}
                         cursor="pointer"
                     >
                         {chartData.map((entry, index) => (
