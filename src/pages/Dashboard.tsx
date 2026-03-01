@@ -339,7 +339,7 @@ const Dashboard = () => {
                       </div>
 
                       <div className="text-[10px] text-muted-foreground mb-4 italic">
-                        Click labels to toggle filter • Point size = number of studies
+                        Click labels to toggle filter
                       </div>
 
                       <EvidenceScatterPlot data={filteredData} yAxisKey={yAxisVar} />
