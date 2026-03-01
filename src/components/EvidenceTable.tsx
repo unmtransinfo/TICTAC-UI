@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ArrowUpDown, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
 import {
     Table,
@@ -63,6 +63,7 @@ const SortableHeader = ({
 );
 
 export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
+    const navigate = useNavigate();
     const [sortKey, setSortKey] = useState<SortKey>('meanRankScore');
     const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
@@ -116,14 +117,14 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
                         <TableHead className="text-right">
                             <SortableHeader columnKey="nDrug" sortKey={sortKey} sortOrder={sortOrder} onSort={handleSort}>Drugs</SortableHeader>
                         </TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {sortedData.map((association) => (
                         <TableRow
                             key={association.id}
-                            className="group cursor-pointer hover:bg-muted/50"
+                            className="group cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => navigate(`/evidence/${association.id}`)}
                         >
                             <TableCell>
                                 <div>
@@ -159,17 +160,6 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
                             </TableCell>
                             <TableCell className="text-right font-mono">
                                 {association.nDrug}
-                            </TableCell>
-                            <TableCell>
-                                <Link to={`/evidence/${association.id}`}>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                </Link>
                             </TableCell>
                         </TableRow>
                     ))}
