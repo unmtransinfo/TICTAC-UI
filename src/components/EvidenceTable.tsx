@@ -1,6 +1,6 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUpDown, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUpDown, ChevronRight, ArrowUp, ArrowDown, ChevronLeft } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -66,6 +66,13 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
     const navigate = useNavigate();
     const [sortKey, setSortKey] = useState<SortKey>('meanRankScore');
     const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(20);
+
+    // Reset page when data changes
+    useEffect(() => {
+        setCurrentPage(0);
+    }, [data]);
 
     const sortedData = useMemo(() => {
         return [...data].sort((a, b) => {
@@ -82,6 +89,14 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
             return sortOrder === 'asc' ? comparison : -comparison;
         });
     }, [data, sortKey, sortOrder]);
+
+    const totalPages = Math.max(1, Math.ceil(sortedData.length / pageSize));
+    const paginatedData = useMemo(() => {
+        return sortedData.slice(
+            currentPage * pageSize,
+            currentPage * pageSize + pageSize
+        );
+    }, [sortedData, currentPage]);
 
     const handleSort = useCallback((key: SortKey) => {
         setSortKey((prevKey) => {
@@ -123,7 +138,7 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {sortedData.map((association) => (
+                    {paginatedData.map((association) => (
                         <TableRow
                             key={association.id}
                             className="group cursor-pointer hover:bg-muted/50 transition-colors"
@@ -171,6 +186,52 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
                     ))}
                 </TableBody>
             </Table>
+
+            {data.length > 20 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 gap-4 border-t bg-muted/30">
+                    <div className="flex items-center gap-4 order-2 sm:order-1">
+                        <div className="text-sm text-muted-foreground">
+                            Showing {currentPage * pageSize + 1} to {Math.min((currentPage + 1) * pageSize, data.length)} of {data.length}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm border-l pl-4">
+                            <span className="text-muted-foreground whitespace-nowrap">Show entries:</span>
+                            <select
+                                value={pageSize}
+                                onChange={(e) => {
+                                    setPageSize(Number(e.target.value));
+                                    setCurrentPage(0);
+                                }}
+                                className="bg-transparent border rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-primary"
+                            >
+                                {[20, 30, 40, 50].map(size => (
+                                    <option key={size} value={size}>{size}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-2 order-1 sm:order-2 ml-auto sm:ml-0">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                            disabled={currentPage === 0}
+                        >
+                            <ChevronLeft className="h-4 w-4 mr-1" />
+                            Prev
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+                            disabled={currentPage >= totalPages - 1}
+                        >
+                            Next
+                            <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
