@@ -330,13 +330,6 @@ const Dashboard = () => {
                       </div>
                     </div>
 
-                    <div className="mb-4 text-sm text-muted-foreground flex items-center gap-2">
-                      <Database className="h-4 w-4" />
-                      <span>
-                        Showing {filteredData.length} of {data.length} targets • Point size = number of studies
-                      </span>
-                    </div>
-
                     <EvidenceScatterPlot data={filteredData} yAxisKey={yAxisVar} />
                   </div>
                 </div>
