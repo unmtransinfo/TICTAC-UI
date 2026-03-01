@@ -271,79 +271,80 @@ const Dashboard = () => {
               <div className="text-center py-16 text-muted-foreground">Loading...</div>
             ) : data.length > 0 ? (
               <>
-                <div className="mb-8">
-                  <h2 className="text-xl font-semibold mb-4">Evidence Landscape</h2>
-                  <div className="p-6 rounded-xl bg-card border border-border/50">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-                      <div className="lg:col-span-4">
-                        <div className="text-sm font-medium mb-2">Filter by TDL</div>
-                        <div className="flex flex-wrap gap-2">
-                          {(['Tclin', 'Tchem', 'Tbio', 'Tdark'] as const).map((tdl) => (
-                            <button
-                              key={tdl}
-                              onClick={() => toggleTDL(tdl)}
-                              className={cn(
-                                "flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all hover:scale-105 active:scale-95",
-                                selectedTDLs.has(tdl)
-                                  ? "bg-secondary border-primary/20"
-                                  : "bg-muted/30 border-transparent opacity-60"
-                              )}
-                            >
-                              <div
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-semibold">Target Evidence Summary</h2>
+                      <div className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded">
+                        Filtered: <span className="font-bold text-primary">{filteredData.length}</span> targets
+                      </div>
+                    </div>
+                    <EvidenceTable data={filteredData} />
+                  </div>
+
+                  <div className="space-y-4">
+                    <h2 className="text-xl font-semibold">Evidence Landscape</h2>
+                    <div className="p-6 rounded-xl bg-card border border-border/50 h-full">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div>
+                          <div className="text-sm font-medium mb-2">Filter by TDL</div>
+                          <div className="flex flex-wrap gap-2">
+                            {(['Tclin', 'Tchem', 'Tbio', 'Tdark'] as const).map((tdl) => (
+                              <button
+                                key={tdl}
+                                onClick={() => toggleTDL(tdl)}
                                 className={cn(
-                                  "w-2.5 h-2.5 rounded-full",
-                                  tdl === 'Tclin' ? 'bg-tdl-tclin' :
-                                    tdl === 'Tchem' ? 'bg-tdl-tchem' :
-                                      tdl === 'Tbio' ? 'bg-tdl-tbio' : 'bg-tdl-tdark'
+                                  "flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all hover:scale-105 active:scale-95",
+                                  selectedTDLs.has(tdl)
+                                    ? "bg-secondary border-primary/20"
+                                    : "bg-muted/30 border-transparent opacity-60"
                                 )}
-                              />
-                              <span className="text-xs font-semibold">{tdl}</span>
-                            </button>
-                          ))}
+                              >
+                                <div
+                                  className={cn(
+                                    "w-2.5 h-2.5 rounded-full",
+                                    tdl === 'Tclin' ? 'bg-tdl-tclin' :
+                                      tdl === 'Tchem' ? 'bg-tdl-tchem' :
+                                        tdl === 'Tbio' ? 'bg-tdl-tbio' : 'bg-tdl-tdark'
+                                  )}
+                                />
+                                <span className="text-xs font-semibold">{tdl}</span>
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                        <div className="text-[10px] text-muted-foreground mt-2 italic">
-                          Click labels to toggle filter
+
+                        <div>
+                          <div className="text-sm font-medium mb-2">Gene Filter</div>
+                          <Input
+                            placeholder="Search gene..."
+                            value={geneFilter}
+                            onChange={(e) => setGeneFilter(e.target.value)}
+                            className="h-9"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="text-sm font-medium mb-2">Y-Axis Variable</div>
+                          <select
+                            value={yAxisVar}
+                            onChange={(e) => setYAxisVar(e.target.value as any)}
+                            className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                          >
+                            <option value="nPub">Publications</option>
+                            <option value="nStud">Studies</option>
+                            <option value="nDrug">Drugs</option>
+                          </select>
                         </div>
                       </div>
 
-                      <div className="lg:col-span-4">
-                        <div className="text-sm font-medium mb-2">Gene Filter</div>
-                        <Input
-                          placeholder="Search gene..."
-                          value={geneFilter}
-                          onChange={(e) => setGeneFilter(e.target.value)}
-                          className="h-9"
-                        />
+                      <div className="text-[10px] text-muted-foreground mb-4 italic">
+                        Click labels to toggle filter • Point size = number of studies
                       </div>
 
-                      <div className="lg:col-span-4">
-                        <div className="text-sm font-medium mb-2">Y-Axis Variable</div>
-                        <select
-                          value={yAxisVar}
-                          onChange={(e) => setYAxisVar(e.target.value as any)}
-                          className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-                        >
-                          <option value="nPub">Publications</option>
-                          <option value="nStud">Studies</option>
-                          <option value="nDrug">Drugs</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <EvidenceScatterPlot data={filteredData} yAxisKey={yAxisVar} />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold">Target Evidence Summary</h2>
-                    <div className="flex items-center gap-4">
-                      <div className="text-sm text-muted-foreground">
-                        Filtered: {filteredData.length} targets
-                      </div>
+                      <EvidenceScatterPlot data={filteredData} yAxisKey={yAxisVar} />
                     </div>
                   </div>
-                  <EvidenceTable data={filteredData} />
                 </div>
               </>
             ) : (
