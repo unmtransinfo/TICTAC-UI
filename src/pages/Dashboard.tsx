@@ -10,7 +10,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, FlaskConical, Target, FileText, Beaker, ChevronLeft, ChevronRight, Database, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FlaskConical, Target, FileText, Beaker, ChevronLeft, ChevronRight, Database, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchBar } from '@/components/SearchBar';
@@ -20,11 +20,6 @@ import { TDLBadge } from '@/components/TDLBadge';
 import { fetchAssociationSummary, fetchProvenanceSummary, type ProvenanceSummaryItem } from '@/lib/api';
 import type { DiseaseTargetAssociation } from '@/types/tictac';
 import { cn } from '@/lib/utils';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import {
   Table,
   TableBody,
@@ -346,21 +341,17 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                <Collapsible defaultOpen className="space-y-2">
-                  <CollapsibleTrigger asChild>
-                    <div className="flex items-center justify-between mb-4 cursor-pointer hover:bg-muted/30 p-2 -m-2 rounded-lg transition-colors group">
-                      <h2 className="text-xl font-semibold">Target Evidence Summary</h2>
-                      <div className="flex items-center gap-4">
-                        <div className="text-sm text-muted-foreground">
-                          Filtered: {filteredData.length} targets
-                        </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold">Target Evidence Summary</h2>
+                    <div className="flex items-center gap-4">
+                      <div className="text-sm text-muted-foreground">
+                        Filtered: {filteredData.length} targets
                       </div>
                     </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <EvidenceTable data={filteredData} />
-                  </CollapsibleContent>
-                </Collapsible>
+                  </div>
+                  <EvidenceTable data={filteredData} />
+                </div>
               </>
             ) : (
               <div className="text-center py-16">
