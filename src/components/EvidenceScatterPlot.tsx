@@ -36,10 +36,10 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
 
     const data = payload[0].payload;
     return (
-        <div className="bg-card border rounded-lg shadow-lg p-3 max-w-xs">
-            <div className="font-semibold text-foreground">{data.geneSymbol}</div>
-            <div className="text-sm text-muted-foreground mb-2">{data.geneName}</div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+        <div className="bg-card border rounded-lg shadow-lg p-3 max-w-xs transition-all animate-in fade-in zoom-in duration-200">
+            <div className="font-bold text-lg text-primary leading-tight">{data.uniprotId}</div>
+            <div className="text-sm font-medium text-muted-foreground mb-3">{data.geneSymbol}</div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
                 <span className="text-muted-foreground">Score:</span>
                 <span className="font-medium">{data.meanRankScore.toFixed(1)}</span>
                 <span className="text-muted-foreground">Publications:</span>

@@ -19,7 +19,7 @@ interface EvidenceTableProps {
     className?: string;
 }
 
-type SortKey = 'geneSymbol' | 'tdl' | 'meanRankScore' | 'nPub' | 'nStud' | 'nDrug';
+type SortKey = 'uniprotId' | 'geneSymbol' | 'tdl' | 'meanRankScore' | 'nPub' | 'nStud' | 'nDrug';
 type SortOrder = 'asc' | 'desc';
 
 const TDL_ORDER = { Tclin: 0, Tchem: 1, Tbio: 2, Tdark: 3 };
@@ -73,8 +73,8 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
 
             if (sortKey === 'tdl') {
                 comparison = TDL_ORDER[a.tdl] - TDL_ORDER[b.tdl];
-            } else if (sortKey === 'geneSymbol') {
-                comparison = a.geneSymbol.localeCompare(b.geneSymbol);
+            } else if (sortKey === 'geneSymbol' || sortKey === 'uniprotId') {
+                comparison = a[sortKey].localeCompare(b[sortKey]);
             } else {
                 comparison = a[sortKey] - b[sortKey];
             }
@@ -99,6 +99,9 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
             <Table>
                 <TableHeader>
                     <TableRow>
+                        <TableHead>
+                            <SortableHeader columnKey="uniprotId" sortKey={sortKey} sortOrder={sortOrder} onSort={handleSort}>Target</SortableHeader>
+                        </TableHead>
                         <TableHead>
                             <SortableHeader columnKey="geneSymbol" sortKey={sortKey} sortOrder={sortOrder} onSort={handleSort}>Gene</SortableHeader>
                         </TableHead>
@@ -126,6 +129,9 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
                             className="group cursor-pointer hover:bg-muted/50 transition-colors"
                             onClick={() => navigate(`/evidence/${association.id}`)}
                         >
+                            <TableCell className="font-mono text-xs text-muted-foreground">
+                                {association.uniprotId}
+                            </TableCell>
                             <TableCell>
                                 <div>
                                     <div className="font-semibold text-foreground">
