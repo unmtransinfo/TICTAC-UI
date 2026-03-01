@@ -117,7 +117,6 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
                         <TableHead className="text-right">
                             <SortableHeader columnKey="nDrug" sortKey={sortKey} sortOrder={sortOrder} onSort={handleSort}>Drugs</SortableHeader>
                         </TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -161,15 +160,6 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
                             </TableCell>
                             <TableCell className="text-right font-mono">
                                 {association.nDrug}
-                            </TableCell>
-                            <TableCell className="text-right">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                    <ChevronRight className="h-4 w-4" />
-                                </Button>
                             </TableCell>
                         </TableRow>
                     ))}
