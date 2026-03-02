@@ -272,7 +272,7 @@ const Dashboard = () => {
             ) : data.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                  <div className="space-y-4">
+                  <div className="space-y-4 order-2 xl:order-1">
                     <div className="flex items-center justify-between">
                       <h2 className="text-xl font-semibold">Target Evidence Summary</h2>
                       <div className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded">
@@ -282,7 +282,7 @@ const Dashboard = () => {
                     <EvidenceTable data={filteredData} />
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-4 order-1 xl:order-2">
                     <h2 className="text-xl font-semibold">Disease-Target Association</h2>
                     <div className="p-6 rounded-xl bg-card border border-border/50 h-full">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
