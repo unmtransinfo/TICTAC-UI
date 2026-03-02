@@ -283,7 +283,7 @@ const Dashboard = () => {
                   </div>
 
                   <div className="space-y-4">
-                    <h2 className="text-xl font-semibold">Evidence Landscape</h2>
+                    <h2 className="text-xl font-semibold">Disease-Target Association</h2>
                     <div className="p-6 rounded-xl bg-card border border-border/50 h-full">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div>
