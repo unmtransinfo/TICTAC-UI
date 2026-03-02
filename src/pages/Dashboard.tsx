@@ -271,7 +271,7 @@ const Dashboard = () => {
               <div className="text-center py-16 text-muted-foreground">Loading...</div>
             ) : data.length > 0 ? (
               <>
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
                   <div className="space-y-4 order-2 xl:order-1">
                     <div className="flex items-center justify-between">
                       <h2 className="text-xl font-semibold">Target Evidence Summary</h2>
