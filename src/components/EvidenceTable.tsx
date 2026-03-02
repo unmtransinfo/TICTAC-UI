@@ -152,9 +152,11 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
                                     <div className="font-semibold text-foreground">
                                         {association.geneSymbol}
                                     </div>
-                                    <div className="text-sm text-muted-foreground truncate max-w-[200px]">
-                                        {association.geneName}
-                                    </div>
+                                    {association.geneName && association.geneName !== association.geneSymbol && (
+                                        <div className="text-sm text-muted-foreground truncate max-w-[200px]">
+                                            {association.geneName}
+                                        </div>
+                                    )}
                                 </div>
                             </TableCell>
                             <TableCell>
