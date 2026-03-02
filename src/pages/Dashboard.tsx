@@ -17,12 +17,9 @@ import { SearchBar } from '@/components/SearchBar';
 import { EvidenceScatterPlot } from '@/components/EvidenceScatterPlot';
 import { EvidenceTable } from '@/components/EvidenceTable';
 import { TDLBadge } from '@/components/TDLBadge';
-import {
-  fetchAssociationSummary,
-  fetchProvenanceSummary,
-  type ProvenanceSummaryItem,
-} from '@/lib/api';
+import { fetchAssociationSummary, fetchProvenanceSummary, type ProvenanceSummaryItem } from '@/lib/api';
 import type { DiseaseTargetAssociation } from '@/types/tictac';
+import { cn } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -46,6 +43,32 @@ const Dashboard = () => {
   // -------------------------
   const [data, setData] = useState<DiseaseTargetAssociation[]>([]);
   const [isLoadingAssociation, setIsLoadingAssociation] = useState(true);
+
+  // Advanced Filtering State
+  const [selectedTDLs, setSelectedTDLs] = useState<Set<string>>(new Set(['Tclin', 'Tchem', 'Tbio', 'Tdark']));
+  const [geneFilter, setGeneFilter] = useState('');
+  const [yAxisVar, setYAxisVar] = useState<'nPub' | 'nStud' | 'nDrug'>('nPub');
+
+  const filteredData = useMemo(() => {
+    return data.filter((item) => {
+      const matchesTDL = selectedTDLs.has(item.tdl);
+      const matchesGene = item.geneSymbol.toLowerCase().includes(geneFilter.toLowerCase()) ||
+        item.geneName.toLowerCase().includes(geneFilter.toLowerCase());
+      return matchesTDL && matchesGene;
+    });
+  }, [data, selectedTDLs, geneFilter]);
+
+  const toggleTDL = (tdl: string) => {
+    setSelectedTDLs((prev) => {
+      const next = new Set(prev);
+      if (next.has(tdl)) {
+        if (next.size > 1) next.delete(tdl);
+      } else {
+        next.add(tdl);
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!isAssociationMode) return;
@@ -248,38 +271,80 @@ const Dashboard = () => {
               <div className="text-center py-16 text-muted-foreground">Loading...</div>
             ) : data.length > 0 ? (
               <>
-                <div className="mb-8">
-                  <h2 className="text-xl font-semibold mb-4">Evidence Landscape</h2>
-                  <div className="p-6 rounded-xl bg-card border border-border/50">
-                    <div className="flex flex-wrap gap-4 mb-4 text-sm">
-                      <span className="text-muted-foreground">
-                        Point size = number of studies • Click to view provenance
-                      </span>
-                      <div className="flex gap-4 ml-auto">
-                        {(['Tclin', 'Tchem', 'Tbio', 'Tdark'] as const).map((tdl) => (
-                          <div key={tdl} className="flex items-center gap-1.5">
-                            <div
-                              className={`w-3 h-3 rounded-full ${tdl === 'Tclin'
-                                ? 'bg-tdl-tclin'
-                                : tdl === 'Tchem'
-                                  ? 'bg-tdl-tchem'
-                                  : tdl === 'Tbio'
-                                    ? 'bg-tdl-tbio'
-                                    : 'bg-tdl-tdark'
-                                }`}
-                            />
-                            <span className="text-muted-foreground">{tdl}</span>
-                          </div>
-                        ))}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+                  <div className="space-y-4 order-2 xl:order-1">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-semibold">Target Evidence Summary</h2>
+                      <div className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded">
+                        Filtered: <span className="font-bold text-primary">{filteredData.length}</span> targets
                       </div>
                     </div>
-                    <EvidenceScatterPlot data={data} />
+                    <EvidenceTable data={filteredData} />
                   </div>
-                </div>
 
-                <div>
-                  <h2 className="text-xl font-semibold mb-4">Target Evidence Summary</h2>
-                  <EvidenceTable data={data} />
+                  <div className="space-y-4 order-1 xl:order-2">
+                    <h2 className="text-xl font-semibold">Disease-Target Association</h2>
+                    <div className="p-6 rounded-xl bg-card border border-border/50 h-full">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div>
+                          <div className="text-sm font-medium mb-2">Filter by TDL</div>
+                          <div className="flex flex-wrap gap-2">
+                            {(['Tclin', 'Tchem', 'Tbio', 'Tdark'] as const).map((tdl) => (
+                              <button
+                                key={tdl}
+                                onClick={() => toggleTDL(tdl)}
+                                className={cn(
+                                  "flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all hover:scale-105 active:scale-95",
+                                  selectedTDLs.has(tdl)
+                                    ? "bg-secondary border-primary/20"
+                                    : "bg-muted/30 border-transparent opacity-60"
+                                )}
+                              >
+                                <div
+                                  className={cn(
+                                    "w-2.5 h-2.5 rounded-full",
+                                    tdl === 'Tclin' ? 'bg-tdl-tclin' :
+                                      tdl === 'Tchem' ? 'bg-tdl-tchem' :
+                                        tdl === 'Tbio' ? 'bg-tdl-tbio' : 'bg-tdl-tdark'
+                                  )}
+                                />
+                                <span className="text-xs font-semibold">{tdl}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="text-sm font-medium mb-2">Gene Filter</div>
+                          <Input
+                            placeholder="Search gene..."
+                            value={geneFilter}
+                            onChange={(e) => setGeneFilter(e.target.value)}
+                            className="h-9"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="text-sm font-medium mb-2">Y-Axis Variable</div>
+                          <select
+                            value={yAxisVar}
+                            onChange={(e) => setYAxisVar(e.target.value as any)}
+                            className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                          >
+                            <option value="nPub">Publications</option>
+                            <option value="nStud">Studies</option>
+                            <option value="nDrug">Drugs</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="text-[10px] text-muted-foreground mb-4 italic">
+                        Click labels to toggle filter
+                      </div>
+
+                      <EvidenceScatterPlot data={filteredData} yAxisKey={yAxisVar} />
+                    </div>
+                  </div>
                 </div>
               </>
             ) : (
