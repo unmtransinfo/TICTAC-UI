@@ -2,7 +2,7 @@
   Main API Request function
 */
 
-import type { DiseaseTargetAssociation, Evidence, TDL } from '@/types/tictac';
+import type { DiseaseTargetAssociation, TDL, EvidenceTrail } from '@/types/tictac';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
 
@@ -104,20 +104,20 @@ const mapSummaryRow = (row: SummaryRow): DiseaseTargetAssociation => {
   };
 };
 
-const mapEvidenceRow = (row: EvidenceRow, index: number): Evidence => {
+const mapEvidenceRow = (row: EvidenceRow, index: number): EvidenceTrail => {
   const citation = readString(row.citation);
   const title = citation || readString(row.official_title, 'Clinical evidence record');
 
   return {
     id: `${readString(row.nct_id, 'nct')}-${index}`,
     nctId: readString(row.nct_id, 'N/A'),
-    pmid: readString(row.pmid) || undefined,
     title,
-    authors: 'N/A',
-    journal: 'N/A',
-    year: readNumber(row.publication_year ?? row.year, new Date().getFullYear()),
-    referenceType: 'RESULT',
-    abstract: readString(row.study_title) || undefined,
+    studyType: readString(row.study_type),
+    phase: readString(row.phase),
+    overallStatus: readString(row.overall_status),
+    startDate: readString(row.start_date),
+    completionDate: readString(row.completion_date),
+    enrollment: readNumber(row.enrollment),
   };
 };
 
@@ -195,7 +195,7 @@ const fetchAssociationEvidence = async (params: {
   exclude_withdrawn?: boolean;
   limit?: number;
   offset?: number;
-}): Promise<Evidence[]> => {
+}): Promise<EvidenceTrail[]> => {
   const payload = await fetchJson<unknown>('/associations/evidence', params);
   return asArray<EvidenceRow>(payload).map(mapEvidenceRow);
 };
@@ -254,8 +254,8 @@ export const fetchAssociationById = async (diseaseTarget: string): Promise<Disea
     diseaseId: doid || 'Unknown',
     tdl: 'Tdark',
     meanRankScore: 0,
-    nPub: evidence.filter((item) => Boolean(item.pmid)).length,
     nStud: evidence.length,
+    nPub: 0,
     nDrug: 0,
     studyNewness: 0,
     evidence,

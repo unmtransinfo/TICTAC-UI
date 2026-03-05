@@ -5,6 +5,7 @@ export type TDL = 'Tclin' | 'Tchem' | 'Tbio' | 'Tdark';
 
 export type ReferenceType = 'RESULT' | 'BACKGROUND' | 'DERIVED';
 
+/*
 export interface Evidence {
   id: string;
   nctId: string; // Clinical Trial ID (e.g., NCT12345678)
@@ -15,6 +16,18 @@ export interface Evidence {
   year: number;
   referenceType: ReferenceType;
   abstract?: string;
+}*/
+
+export interface EvidenceTrail {
+  id: string;
+  nctId: string; // Clinical Trial ID (e.g., NCT12345678)
+  title: string;
+  studyType: string,
+  phase: string,
+  overallStatus: string,
+  startDate: string,
+  completionDate: string,
+  enrollment: number,
 }
 
 export interface DiseaseTargetAssociation {
@@ -30,7 +43,7 @@ export interface DiseaseTargetAssociation {
   nStud: number; // Number of studies
   nDrug: number; // Number of drugs
   studyNewness: number; // Recency score
-  evidence: Evidence[];
+  evidence: EvidenceTrail[];
 }
 
 export interface SearchResult {

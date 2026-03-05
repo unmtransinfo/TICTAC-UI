@@ -4,9 +4,8 @@
 */
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, FlaskConical, FileText, Beaker, TestTube } from 'lucide-react';
+import { ArrowLeft, ExternalLink, FlaskConical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Collapsible,
@@ -15,53 +14,19 @@ import {
 } from '@/components/ui/collapsible';
 import { TDLBadge } from '@/components/TDLBadge';
 import { fetchAssociationById } from '@/lib/api';
-import { REFERENCE_TYPE_WEIGHTS, type ReferenceType, type Evidence, type DiseaseTargetAssociation } from '@/types/tictac';
-import { cn } from '@/lib/utils';
+import { REFERENCE_TYPE_WEIGHTS, type ReferenceType, type EvidenceTrail, type DiseaseTargetAssociation } from '@/types/tictac';
 
-const REFERENCE_TYPE_INFO: Record<
-  ReferenceType,
-  { label: string; color: string; icon: React.ComponentType<{ className?: string }> }
-> = {
-  RESULT: {
-    label: 'Result',
-    color: 'bg-evidence-result text-white',
-    icon: TestTube,
-  },
-  BACKGROUND: {
-    label: 'Background',
-    color: 'bg-evidence-background text-white',
-    icon: FileText,
-  },
-  DERIVED: {
-    label: 'Derived',
-    color: 'bg-evidence-derived text-white',
-    icon: Beaker,
-  },
-};
-
-const EvidenceCard = ({ evidence }: { evidence: Evidence }) => {
-  const refInfo = REFERENCE_TYPE_INFO[evidence.referenceType];
-  const RefIcon = refInfo.icon;
+const EvidenceCard = ({ evidence }: { evidence: EvidenceTrail }) => {
 
   return (
     <Card className="group hover:border-primary/30 transition-colors">
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <Badge className={cn('shrink-0', refInfo.color)}>
-                <RefIcon className="h-3 w-3 mr-1" />
-                {refInfo.label}
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                Weight: {REFERENCE_TYPE_WEIGHTS[evidence.referenceType]}
-              </span>
-            </div>
             <h4 className="font-medium text-foreground mb-1 line-clamp-2">
               {evidence.title}
             </h4>
             <p className="text-sm text-muted-foreground mb-2">
-              {evidence.authors} • {evidence.journal} ({evidence.year})
+              {evidence.studyType} • {evidence.phase} ({evidence.overallStatus})
             </p>
             <div className="flex flex-wrap gap-2">
               {evidence.nctId !== 'N/A' && (
@@ -75,20 +40,8 @@ const EvidenceCard = ({ evidence }: { evidence: Evidence }) => {
                   <ExternalLink className="h-3 w-3" />
                 </a>
               )}
-              {evidence.pmid && (
-                <a
-                  href={`https://pubmed.ncbi.nlm.nih.gov/${evidence.pmid}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                >
-                  PMID: {evidence.pmid}
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              )}
             </div>
           </div>
-        </div>
       </CardContent>
     </Card>
   );
@@ -125,15 +78,14 @@ const EvidenceDetail = () => {
   // Organize evidence by 3 types
   const groupedEvidence = useMemo(() => {
     if (!association) {
-      return { RESULT: [], BACKGROUND: [], DERIVED: [] } as Record<ReferenceType, Evidence[]>;
+      return { RESULT: [], BACKGROUND: [], DERIVED: [] } as Record<ReferenceType, EvidenceTrail[]>;
     }
 
     return association.evidence.reduce(
       (acc, ev) => {
-        acc[ev.referenceType].push(ev);
         return acc;
       },
-      { RESULT: [], BACKGROUND: [], DERIVED: [] } as Record<ReferenceType, Evidence[]>
+      { RESULT: [], BACKGROUND: [], DERIVED: [] } as Record<ReferenceType, EvidenceTrail[]>
     );
   }, [association]);
 
@@ -258,17 +210,13 @@ const EvidenceDetail = () => {
         {/* Evidence Trail */}
         <h2 className="text-xl font-semibold mb-4">Evidence Trail</h2>
         <p className="text-muted-foreground mb-6">
-          Tracing the provenance of this association back to clinical trials and publications.
-          Evidence is weighted by reference type: Result (1.0) &gt; Background (0.5) &gt; Derived (0.25).
+          Tracing the provenance of this association back to clinical trials.
         </p>
 
         <div className="space-y-6">
           {(['RESULT', 'BACKGROUND', 'DERIVED'] as const).map((refType) => {
             const evidence = groupedEvidence[refType];
             if (evidence.length === 0) return null;
-
-            const refInfo = REFERENCE_TYPE_INFO[refType];
-            const RefIcon = refInfo.icon;
 
             return (
               <Collapsible key={refType} defaultOpen={refType === 'RESULT'}>
@@ -278,10 +226,6 @@ const EvidenceDetail = () => {
                     className="w-full justify-between p-4 h-auto rounded-lg border bg-card hover:bg-muted/50"
                   >
                     <div className="flex items-center gap-3">
-                      <Badge className={cn('shrink-0', refInfo.color)}>
-                        <RefIcon className="h-3 w-3 mr-1" />
-                        {refInfo.label}
-                      </Badge>
                       <span className="font-medium">
                         {evidence.length} reference{evidence.length !== 1 ? 's' : ''}
                       </span>
