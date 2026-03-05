@@ -137,22 +137,22 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
           <TableRow>
             <TableHead>
               <SortableHeader
-                columnKey="uniprotId"
-                sortKey={sortKey}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-              >
-                Target
-              </SortableHeader>
-            </TableHead>
-            <TableHead>
-              <SortableHeader
                 columnKey="geneSymbol"
                 sortKey={sortKey}
                 sortOrder={sortOrder}
                 onSort={handleSort}
               >
                 Gene
+              </SortableHeader>
+            </TableHead>
+            <TableHead>
+              <SortableHeader
+                columnKey="uniprotId"
+                sortKey={sortKey}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+              >
+                Target
               </SortableHeader>
             </TableHead>
             <TableHead>
@@ -215,12 +215,12 @@ export const EvidenceTable = ({ data, className }: EvidenceTableProps) => {
               onClick={() => navigate(`/evidence/${association.id}`)}
             >
               <TableCell className="font-mono text-xs text-muted-foreground">
-                {association.uniprotId}
+                {association.geneSymbol}
               </TableCell>
               <TableCell>
                 <div>
                   <div className="font-semibold text-foreground">
-                    {association.geneSymbol}
+                    {association.uniprotId}
                   </div>
                   {association.targetName &&
                     association.targetName !== association.geneSymbol && (
