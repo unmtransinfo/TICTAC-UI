@@ -179,9 +179,30 @@ const Dashboard = () => {
   );
   const [isLoadingProvenance, setIsLoadingProvenance] = useState(true);
   const [uniprotInput, setUniprotInput] = useState("");
-  const [referenceInput, setReferenceInput] = useState("");
+  const [nctIdInput, setNctIdInput] = useState("");
+  const [pmidInput, setPmidInput] = useState("");
+  // Debounced values used to trigger API re-fetches (avoids a call per keystroke)
+  const [uniprotSearch, setUniprotSearch] = useState("");
+  const [nctIdSearch, setNctIdSearch] = useState("");
+  const [pmidSearch, setPmidSearch] = useState("");
   const [pageSize, setPageSize] = useState(20);
   const [currentPage, setCurrentPage] = useState(0);
+
+  // Debounce all three filter inputs before hitting the API
+  useEffect(() => {
+    const timer = setTimeout(() => setUniprotSearch(uniprotInput.trim()), 500);
+    return () => clearTimeout(timer);
+  }, [uniprotInput]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setNctIdSearch(nctIdInput.trim()), 500);
+    return () => clearTimeout(timer);
+  }, [nctIdInput]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setPmidSearch(pmidInput.trim()), 500);
+    return () => clearTimeout(timer);
+  }, [pmidInput]);
 
   useEffect(() => {
     if (isAssociationMode) return;
@@ -192,6 +213,9 @@ const Dashboard = () => {
         const rows = await fetchProvenanceSummary({
           doid: diseaseId,
           gene_symbol: geneSymbol,
+          uniprot: uniprotSearch || undefined,
+          nct_id: nctIdSearch || undefined,
+          pmid: pmidSearch || undefined,
           limit: 5000,
         });
         setProvenanceRows(rows);
@@ -203,30 +227,22 @@ const Dashboard = () => {
     };
 
     void load();
-  }, [isAssociationMode, diseaseId, geneSymbol]);
+  }, [
+    isAssociationMode,
+    diseaseId,
+    geneSymbol,
+    uniprotSearch,
+    nctIdSearch,
+    pmidSearch,
+  ]);
 
-  // Live client-side filtering
-  const filteredRows = useMemo(() => {
-    const u = uniprotInput.trim().toLowerCase();
-    const r = referenceInput.trim().toLowerCase();
-    if (!u && !r) return provenanceRows;
-    return provenanceRows.filter((row) => {
-      const matchUniprot = !u || (row.uniprot ?? "").toLowerCase().includes(u);
-      const matchRef =
-        !r ||
-        (row.nct_id ?? "").toLowerCase().includes(r) ||
-        String(row.pmid ?? "")
-          .toLowerCase()
-          .includes(r) ||
-        (row.citation ?? "").toLowerCase().includes(r);
-      return matchUniprot && matchRef;
-    });
-  }, [provenanceRows, uniprotInput, referenceInput]);
+  // All filtering is server-side; provenanceRows is the source of truth
+  const filteredRows = provenanceRows;
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(0);
-  }, [uniprotInput, referenceInput, pageSize]);
+  }, [uniprotInput, nctIdInput, pmidInput, pageSize]);
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
@@ -427,10 +443,14 @@ const Dashboard = () => {
                     : "Provenance Dashboard"}
                 </h1>
               </div>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-muted-foreground mb-1">
                 {diseaseId || geneSymbol
                   ? `Detailed clinical trial evidence and publication citations for ${title}.`
                   : "Aggregate view of evidentiary support across the TICTAC dataset."}
+              </p>
+              <p className="text-muted-foreground text-sm mb-4">
+                Please be aware that results are limited to a maximum of 5000
+                entries.
               </p>
               {(diseaseId || geneSymbol) && (
                 <Link
@@ -443,16 +463,21 @@ const Dashboard = () => {
               )}
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2 mb-6">
+            <div className="grid gap-3 md:grid-cols-3 mb-6">
               <Input
                 value={uniprotInput}
                 onChange={(e) => setUniprotInput(e.target.value)}
-                placeholder="Filter by UniProt (e.g. P00533)"
+                placeholder="Filter by UniProt ID (e.g. P00533)"
               />
               <Input
-                value={referenceInput}
-                onChange={(e) => setReferenceInput(e.target.value)}
-                placeholder="Reference (NCT ID or PMID)"
+                value={nctIdInput}
+                onChange={(e) => setNctIdInput(e.target.value)}
+                placeholder="Filter by NCT ID (e.g. NCT00000469)"
+              />
+              <Input
+                value={pmidInput}
+                onChange={(e) => setPmidInput(e.target.value)}
+                placeholder="Filter by PMID (e.g. 10411862)"
               />
             </div>
 
@@ -484,11 +509,19 @@ const Dashboard = () => {
                         colSpan={6}
                         className="text-center text-muted-foreground py-8"
                       >
-                        {uniprotInput.trim() || referenceInput.trim() ? (
+                        {uniprotInput.trim() ||
+                        nctIdInput.trim() ||
+                        pmidInput.trim() ? (
                           <>
                             No results found for{" "}
                             <strong>
-                              {uniprotInput.trim() || referenceInput.trim()}
+                              {[
+                                uniprotInput.trim(),
+                                nctIdInput.trim(),
+                                pmidInput.trim(),
+                              ]
+                                .filter(Boolean)
+                                .join(", ")}
                             </strong>
                           </>
                         ) : (
