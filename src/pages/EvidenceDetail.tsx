@@ -21,10 +21,21 @@ const EvidenceCard = ({ evidence }: { evidence: EvidenceTrail }) => {
         <h4 className="font-medium text-foreground line-clamp-2">
           {evidence.title}
         </h4>
-        <p className="text-sm text-muted-foreground">
-          {evidence.studyType} • {evidence.phase} • {evidence.overallStatus}
-        </p>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1 text-sm">
+          <span className="text-muted-foreground">
+            Type:{" "}
+            <span className="text-foreground">{evidence.studyType || "—"}</span>
+          </span>
+          <span className="text-muted-foreground">
+            Phase:{" "}
+            <span className="text-foreground">{evidence.phase || "—"}</span>
+          </span>
+          <span className="text-muted-foreground">
+            Status:{" "}
+            <span className="text-foreground">
+              {evidence.overallStatus || "—"}
+            </span>
+          </span>
           <span className="text-muted-foreground">
             Start:{" "}
             <span className="text-foreground">{evidence.startDate || "—"}</span>
@@ -206,12 +217,7 @@ const EvidenceDetail = () => {
                 <div className="text-2xl font-bold">{association.nDrug}</div>
                 <div className="text-sm text-muted-foreground">Drugs</div>
               </div>
-              <div className="p-3 rounded-lg bg-muted/50">
-                <div className="text-2xl font-bold">
-                  {(association.studyNewness * 100).toFixed(0)}%
-                </div>
-                <div className="text-sm text-muted-foreground">Newness</div>
-              </div>
+              <div className="p-3 rounded-lg bg-muted/50"></div>
             </div>
           </CardContent>
         </Card>
