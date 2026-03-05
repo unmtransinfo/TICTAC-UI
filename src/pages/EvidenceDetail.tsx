@@ -161,7 +161,7 @@ const EvidenceDetail = () => {
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <CardTitle className="text-2xl md:text-3xl">
-                    {association.geneSymbol}
+                    {association.uniprotId}
                   </CardTitle>
                   <TDLBadge tdl={association.tdl} />
                 </div>
@@ -169,7 +169,7 @@ const EvidenceDetail = () => {
                   {association.targetName}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  UniProt: {association.uniprotId}
+                  Gene: {association.geneSymbol}
                 </p>
               </div>
 
