@@ -84,7 +84,7 @@ const Index = () => {
   const statCards = useMemo(
     () => [
       { label: "Clinical Trials", value: stats.studies, icon: Database },
-      { label: "Gene Targets", value: stats.targets, icon: Target },
+      { label: "Targets", value: stats.targets, icon: Target },
       { label: "Diseases", value: stats.diseases, icon: FlaskConical },
       { label: "Publications", value: stats.publications, icon: FileText },
     ],
@@ -181,7 +181,7 @@ const Index = () => {
                 step: "01",
                 title: "Search",
                 description:
-                  "Enter a disease or gene target to explore validated associations across clinical trials.",
+                  "Enter a disease, gene, or target to explore validated associations across clinical trials.",
                 icon: Search,
               },
               {

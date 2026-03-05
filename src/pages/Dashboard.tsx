@@ -426,7 +426,7 @@ const Dashboard = () => {
                   No associations found
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  Try searching for a different disease or gene target.
+                  Try searching for a different disease, gene, or target.
                 </p>
                 <SearchBar className="max-w-md mx-auto" />
               </div>
