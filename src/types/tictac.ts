@@ -1,9 +1,9 @@
 // TICTAC Research Platform Types
 // Based on the TICTAC paper methodology
 
-export type TDL = 'Tclin' | 'Tchem' | 'Tbio' | 'Tdark';
+export type TDL = "Tclin" | "Tchem" | "Tbio" | "Tdark";
 
-export type ReferenceType = 'RESULT' | 'BACKGROUND' | 'DERIVED';
+export type ReferenceType = "RESULT" | "BACKGROUND" | "DERIVED";
 
 /*
 export interface Evidence {
@@ -22,18 +22,18 @@ export interface EvidenceTrail {
   id: string;
   nctId: string; // Clinical Trial ID (e.g., NCT12345678)
   title: string;
-  studyType: string,
-  phase: string,
-  overallStatus: string,
-  startDate: string,
-  completionDate: string,
-  enrollment: number,
+  studyType: string;
+  phase: string;
+  overallStatus: string;
+  startDate: string;
+  completionDate: string;
+  enrollment: number;
 }
 
 export interface DiseaseTargetAssociation {
   id: string;
   geneSymbol: string;
-  geneName: string;
+  targetName: string;
   uniprotId: string;
   diseaseName: string;
   diseaseId: string; // DOID
@@ -47,7 +47,7 @@ export interface DiseaseTargetAssociation {
 }
 
 export interface SearchResult {
-  type: 'disease' | 'gene';
+  type: "disease" | "gene";
   id: string;
   name: string;
   subtitle: string;
@@ -63,19 +63,19 @@ export const REFERENCE_TYPE_WEIGHTS: Record<ReferenceType, number> = {
 // TDL descriptions
 export const TDL_INFO: Record<TDL, { label: string; description: string }> = {
   Tclin: {
-    label: 'Tclin',
-    description: 'Clinical - Target with approved drug',
+    label: "Tclin",
+    description: "Clinical - Target with approved drug",
   },
   Tchem: {
-    label: 'Tchem',
-    description: 'Chemical - Target with active compound',
+    label: "Tchem",
+    description: "Chemical - Target with active compound",
   },
   Tbio: {
-    label: 'Tbio',
-    description: 'Biological - Target with biological annotation',
+    label: "Tbio",
+    description: "Biological - Target with biological annotation",
   },
   Tdark: {
-    label: 'Tdark',
-    description: 'Dark - Understudied target with minimal annotation',
+    label: "Tdark",
+    description: "Dark - Understudied target with minimal annotation",
   },
 };

@@ -8,18 +8,12 @@
  * provenance summary endpoint/DB view, so that filter is shown as not available.
  */
 
-import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, FlaskConical, Target, FileText, Beaker, ChevronLeft, ChevronRight, Database, ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { SearchBar } from '@/components/SearchBar';
-import { EvidenceScatterPlot } from '@/components/EvidenceScatterPlot';
-import { EvidenceTable } from '@/components/EvidenceTable';
-import { TDLBadge } from '@/components/TDLBadge';
-import { fetchAssociationSummary, fetchProvenanceSummary, type ProvenanceSummaryItem } from '@/lib/api';
-import type { DiseaseTargetAssociation } from '@/types/tictac';
-import { cn } from '@/lib/utils';
+import { EvidenceScatterPlot } from "@/components/EvidenceScatterPlot";
+import { EvidenceTable } from "@/components/EvidenceTable";
+import { SearchBar } from "@/components/SearchBar";
+import { TDLBadge } from "@/components/TDLBadge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -27,16 +21,38 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
+import {
+  fetchAssociationSummary,
+  fetchProvenanceSummary,
+  type ProvenanceSummaryItem,
+} from "@/lib/api";
+import { cn } from "@/lib/utils";
+import type { DiseaseTargetAssociation } from "@/types/tictac";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Beaker,
+  ChevronLeft,
+  ChevronRight,
+  Database,
+  FileText,
+  FlaskConical,
+  Target,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 
 const Dashboard = () => {
   const [searchParams] = useSearchParams();
-  const diseaseId = searchParams.get('disease') ?? undefined;
-  const geneSymbol = searchParams.get('gene') ?? undefined;
+  const diseaseId = searchParams.get("disease") ?? undefined;
+  const geneSymbol = searchParams.get("gene") ?? undefined;
 
-  const view = searchParams.get('view');
+  const view = searchParams.get("view");
   /* association mode if we have params AND user hasn't explicitly asked for provenance view */
-  const isAssociationMode = Boolean((diseaseId || geneSymbol) && view !== 'provenance');
+  const isAssociationMode = Boolean(
+    (diseaseId || geneSymbol) && view !== "provenance",
+  );
 
   // -------------------------
   // Association mode state
@@ -45,15 +61,18 @@ const Dashboard = () => {
   const [isLoadingAssociation, setIsLoadingAssociation] = useState(true);
 
   // Advanced Filtering State
-  const [selectedTDLs, setSelectedTDLs] = useState<Set<string>>(new Set(['Tclin', 'Tchem', 'Tbio', 'Tdark']));
-  const [geneFilter, setGeneFilter] = useState('');
-  const [yAxisVar, setYAxisVar] = useState<'nPub' | 'nStud' | 'nDrug'>('nPub');
+  const [selectedTDLs, setSelectedTDLs] = useState<Set<string>>(
+    new Set(["Tclin", "Tchem", "Tbio", "Tdark"]),
+  );
+  const [geneFilter, setGeneFilter] = useState("");
+  const [yAxisVar, setYAxisVar] = useState<"nPub" | "nStud" | "nDrug">("nPub");
 
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       const matchesTDL = selectedTDLs.has(item.tdl);
-      const matchesGene = item.geneSymbol.toLowerCase().includes(geneFilter.toLowerCase()) ||
-        item.geneName.toLowerCase().includes(geneFilter.toLowerCase());
+      const matchesGene =
+        item.geneSymbol.toLowerCase().includes(geneFilter.toLowerCase()) ||
+        item.targetName.toLowerCase().includes(geneFilter.toLowerCase());
       return matchesTDL && matchesGene;
     });
   }, [data, selectedTDLs, geneFilter]);
@@ -97,26 +116,27 @@ const Dashboard = () => {
     if (geneSymbol && data.length > 0) return data[0].geneSymbol;
     if (geneSymbol) return geneSymbol;
     if (diseaseId) return diseaseId;
-    return 'All Disease-Target Associations';
+    return "All Disease-Target Associations";
   }, [data, diseaseId, geneSymbol]);
 
   const subtitle = useMemo(() => {
     if (diseaseId && data.length > 0) return data[0].diseaseId;
-    if (geneSymbol && data.length > 0) return data[0].geneName;
-    return 'Explore the complete TICTAC dataset';
+    if (geneSymbol && data.length > 0) return data[0].targetName;
+    return "Explore the complete TICTAC dataset";
   }, [data, diseaseId, geneSymbol]);
 
   const stats = useMemo(() => {
     if (diseaseId) {
-      const tclinCount = data.filter((a) => a.tdl === 'Tclin').length;
-      const avgScore = data.reduce((acc, a) => acc + a.meanRankScore, 0) / data.length || 0;
+      const tclinCount = data.filter((a) => a.tdl === "Tclin").length;
+      const avgScore =
+        data.reduce((acc, a) => acc + a.meanRankScore, 0) / data.length || 0;
 
       return [
-        { label: 'Targets', value: data.length, icon: Target },
-        { label: 'Tclin Targets', value: tclinCount, icon: Beaker },
-        { label: 'Avg. Score', value: avgScore.toFixed(1), icon: FlaskConical },
+        { label: "Targets", value: data.length, icon: Target },
+        { label: "Tclin Targets", value: tclinCount, icon: Beaker },
+        { label: "Avg. Score", value: avgScore.toFixed(1), icon: FlaskConical },
         {
-          label: 'Publications',
+          label: "Publications",
           value: data.reduce((acc, a) => acc + a.nPub, 0).toLocaleString(),
           icon: FileText,
         },
@@ -124,14 +144,15 @@ const Dashboard = () => {
     }
 
     if (geneSymbol) {
-      const avgScore = data.reduce((acc, a) => acc + a.meanRankScore, 0) / data.length || 0;
+      const avgScore =
+        data.reduce((acc, a) => acc + a.meanRankScore, 0) / data.length || 0;
 
       return [
-        { label: 'Diseases', value: data.length, icon: FlaskConical },
-        { label: 'TDL', value: data[0]?.tdl ?? 'Unknown', icon: Target },
-        { label: 'Avg. Score', value: avgScore.toFixed(1), icon: Beaker },
+        { label: "Diseases", value: data.length, icon: FlaskConical },
+        { label: "TDL", value: data[0]?.tdl ?? "Unknown", icon: Target },
+        { label: "Avg. Score", value: avgScore.toFixed(1), icon: Beaker },
         {
-          label: 'Publications',
+          label: "Publications",
           value: data.reduce((acc, a) => acc + a.nPub, 0).toLocaleString(),
           icon: FileText,
         },
@@ -140,23 +161,25 @@ const Dashboard = () => {
 
     const uniqueDiseases = new Set(data.map((d) => d.diseaseId)).size;
     const uniqueGenes = new Set(data.map((d) => d.geneSymbol)).size;
-    const tclinCount = data.filter((a) => a.tdl === 'Tclin').length;
+    const tclinCount = data.filter((a) => a.tdl === "Tclin").length;
 
     return [
-      { label: 'Associations', value: data.length, icon: Target },
-      { label: 'Diseases', value: uniqueDiseases, icon: FlaskConical },
-      { label: 'Genes', value: uniqueGenes, icon: Beaker },
-      { label: 'Tclin Targets', value: tclinCount, icon: FileText },
+      { label: "Associations", value: data.length, icon: Target },
+      { label: "Diseases", value: uniqueDiseases, icon: FlaskConical },
+      { label: "Genes", value: uniqueGenes, icon: Beaker },
+      { label: "Tclin Targets", value: tclinCount, icon: FileText },
     ];
   }, [data, diseaseId, geneSymbol]);
 
   // -----------------------
   // Provenance mode state
   // -------------------------
-  const [provenanceRows, setProvenanceRows] = useState<ProvenanceSummaryItem[]>([]);
+  const [provenanceRows, setProvenanceRows] = useState<ProvenanceSummaryItem[]>(
+    [],
+  );
   const [isLoadingProvenance, setIsLoadingProvenance] = useState(true);
-  const [uniprotInput, setUniprotInput] = useState('');
-  const [referenceInput, setReferenceInput] = useState('');
+  const [uniprotInput, setUniprotInput] = useState("");
+  const [referenceInput, setReferenceInput] = useState("");
   const [pageSize, setPageSize] = useState(20);
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -169,7 +192,7 @@ const Dashboard = () => {
         const rows = await fetchProvenanceSummary({
           doid: diseaseId,
           gene_symbol: geneSymbol,
-          limit: 5000
+          limit: 5000,
         });
         setProvenanceRows(rows);
       } catch {
@@ -188,12 +211,14 @@ const Dashboard = () => {
     const r = referenceInput.trim().toLowerCase();
     if (!u && !r) return provenanceRows;
     return provenanceRows.filter((row) => {
-      const matchUniprot = !u || (row.uniprot ?? '').toLowerCase().includes(u);
+      const matchUniprot = !u || (row.uniprot ?? "").toLowerCase().includes(u);
       const matchRef =
         !r ||
-        (row.nct_id ?? '').toLowerCase().includes(r) ||
-        String(row.pmid ?? '').toLowerCase().includes(r) ||
-        (row.citation ?? '').toLowerCase().includes(r);
+        (row.nct_id ?? "").toLowerCase().includes(r) ||
+        String(row.pmid ?? "")
+          .toLowerCase()
+          .includes(r) ||
+        (row.citation ?? "").toLowerCase().includes(r);
       return matchUniprot && matchRef;
     });
   }, [provenanceRows, uniprotInput, referenceInput]);
@@ -209,7 +234,8 @@ const Dashboard = () => {
     currentPage * pageSize,
     currentPage * pageSize + pageSize,
   );
-  const showingFrom = filteredRows.length === 0 ? 0 : currentPage * pageSize + 1;
+  const showingFrom =
+    filteredRows.length === 0 ? 0 : currentPage * pageSize + 1;
   const showingTo = Math.min((currentPage + 1) * pageSize, filteredRows.length);
 
   return (
@@ -217,11 +243,13 @@ const Dashboard = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
-            <Link to="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
+            <Link
+              to="/"
+              className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity"
+            >
               <FlaskConical className="h-6 w-6" />
               <span className="font-bold text-lg">TICTAC</span>
             </Link>
-
           </div>
         </div>
       </header>
@@ -231,14 +259,15 @@ const Dashboard = () => {
           <>
             {(diseaseId || geneSymbol) && (
               <Link
-                to={`/dashboard?view=provenance${diseaseId ? `&disease=${encodeURIComponent(diseaseId)}` : ''}${geneSymbol ? `&gene=${encodeURIComponent(geneSymbol)}` : ''}`}
+                to={`/dashboard?view=provenance${diseaseId ? `&disease=${encodeURIComponent(diseaseId)}` : ""}${geneSymbol ? `&gene=${encodeURIComponent(geneSymbol)}` : ""}`}
                 className="group inline-flex items-center gap-3 p-1 pr-4 mb-8 rounded-full bg-primary/5 border border-primary/10 hover:bg-primary/10 hover:border-primary/20 transition-all shadow-sm active:scale-[0.98]"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
                   <Database className="h-4 w-4" />
                 </div>
                 <span className="text-sm font-medium">
-                  View Provenance Dashboard for <span className="text-primary font-bold">{title}</span>
+                  View Provenance Dashboard for{" "}
+                  <span className="text-primary font-bold">{title}</span>
                 </span>
                 <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
               </Link>
@@ -268,54 +297,76 @@ const Dashboard = () => {
             </div>
 
             {isLoadingAssociation ? (
-              <div className="text-center py-16 text-muted-foreground">Loading...</div>
+              <div className="text-center py-16 text-muted-foreground">
+                Loading...
+              </div>
             ) : data.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
                   <div className="space-y-4 order-2 xl:order-1">
                     <div className="flex items-center justify-between">
-                      <h2 className="text-xl font-semibold">Target Evidence Summary</h2>
+                      <h2 className="text-xl font-semibold">
+                        Target Evidence Summary
+                      </h2>
                       <div className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded">
-                        Filtered: <span className="font-bold text-primary">{filteredData.length}</span> targets
+                        Filtered:{" "}
+                        <span className="font-bold text-primary">
+                          {filteredData.length}
+                        </span>{" "}
+                        targets
                       </div>
                     </div>
                     <EvidenceTable data={filteredData} />
                   </div>
 
                   <div className="space-y-4 order-1 xl:order-2">
-                    <h2 className="text-xl font-semibold">Disease-Target Association</h2>
+                    <h2 className="text-xl font-semibold">
+                      Disease-Target Association
+                    </h2>
                     <div className="p-6 rounded-xl bg-card border border-border/50 h-full">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div>
-                          <div className="text-sm font-medium mb-2">Filter by TDL</div>
+                          <div className="text-sm font-medium mb-2">
+                            Filter by TDL
+                          </div>
                           <div className="flex flex-wrap gap-2">
-                            {(['Tclin', 'Tchem', 'Tbio', 'Tdark'] as const).map((tdl) => (
-                              <button
-                                key={tdl}
-                                onClick={() => toggleTDL(tdl)}
-                                className={cn(
-                                  "flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all hover:scale-105 active:scale-95",
-                                  selectedTDLs.has(tdl)
-                                    ? "bg-secondary border-primary/20"
-                                    : "bg-muted/30 border-transparent opacity-60"
-                                )}
-                              >
-                                <div
+                            {(["Tclin", "Tchem", "Tbio", "Tdark"] as const).map(
+                              (tdl) => (
+                                <button
+                                  key={tdl}
+                                  onClick={() => toggleTDL(tdl)}
                                   className={cn(
-                                    "w-2.5 h-2.5 rounded-full",
-                                    tdl === 'Tclin' ? 'bg-tdl-tclin' :
-                                      tdl === 'Tchem' ? 'bg-tdl-tchem' :
-                                        tdl === 'Tbio' ? 'bg-tdl-tbio' : 'bg-tdl-tdark'
+                                    "flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all hover:scale-105 active:scale-95",
+                                    selectedTDLs.has(tdl)
+                                      ? "bg-secondary border-primary/20"
+                                      : "bg-muted/30 border-transparent opacity-60",
                                   )}
-                                />
-                                <span className="text-xs font-semibold">{tdl}</span>
-                              </button>
-                            ))}
+                                >
+                                  <div
+                                    className={cn(
+                                      "w-2.5 h-2.5 rounded-full",
+                                      tdl === "Tclin"
+                                        ? "bg-tdl-tclin"
+                                        : tdl === "Tchem"
+                                          ? "bg-tdl-tchem"
+                                          : tdl === "Tbio"
+                                            ? "bg-tdl-tbio"
+                                            : "bg-tdl-tdark",
+                                    )}
+                                  />
+                                  <span className="text-xs font-semibold">
+                                    {tdl}
+                                  </span>
+                                </button>
+                              ),
+                            )}
                           </div>
                         </div>
 
                         <div>
-                          <div className="text-sm font-medium mb-2">Gene Filter</div>
+                          <div className="text-sm font-medium mb-2">
+                            Gene Filter
+                          </div>
                           <Input
                             placeholder="Search gene..."
                             value={geneFilter}
@@ -325,7 +376,9 @@ const Dashboard = () => {
                         </div>
 
                         <div>
-                          <div className="text-sm font-medium mb-2">Y-Axis Variable</div>
+                          <div className="text-sm font-medium mb-2">
+                            Y-Axis Variable
+                          </div>
                           <select
                             value={yAxisVar}
                             onChange={(e) => setYAxisVar(e.target.value as any)}
@@ -342,7 +395,10 @@ const Dashboard = () => {
                         Click labels to toggle filter
                       </div>
 
-                      <EvidenceScatterPlot data={filteredData} yAxisKey={yAxisVar} />
+                      <EvidenceScatterPlot
+                        data={filteredData}
+                        yAxisKey={yAxisVar}
+                      />
                     </div>
                   </div>
                 </div>
@@ -350,7 +406,9 @@ const Dashboard = () => {
             ) : (
               <div className="text-center py-16">
                 <FlaskConical className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No associations found</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  No associations found
+                </h3>
                 <p className="text-muted-foreground mb-6">
                   Try searching for a different disease or gene target.
                 </p>
@@ -364,17 +422,19 @@ const Dashboard = () => {
               <div className="flex items-center gap-3 mb-2">
                 <Database className="h-8 w-8 text-primary" />
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                  {diseaseId || geneSymbol ? `Provenance Dashboard for ${title}` : 'Provenance Dashboard'}
+                  {diseaseId || geneSymbol
+                    ? `Provenance Dashboard for ${title}`
+                    : "Provenance Dashboard"}
                 </h1>
               </div>
               <p className="text-muted-foreground mb-4">
                 {diseaseId || geneSymbol
                   ? `Detailed clinical trial evidence and publication citations for ${title}.`
-                  : 'Aggregate view of evidentiary support across the TICTAC dataset.'}
+                  : "Aggregate view of evidentiary support across the TICTAC dataset."}
               </p>
               {(diseaseId || geneSymbol) && (
                 <Link
-                  to={`/dashboard?${diseaseId ? `disease=${encodeURIComponent(diseaseId)}` : ''}${geneSymbol ? `gene=${encodeURIComponent(geneSymbol)}` : ''}`}
+                  to={`/dashboard?${diseaseId ? `disease=${encodeURIComponent(diseaseId)}` : ""}${geneSymbol ? `gene=${encodeURIComponent(geneSymbol)}` : ""}`}
                   className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:opacity-80 transition-opacity group"
                 >
                   <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
@@ -382,7 +442,6 @@ const Dashboard = () => {
                 </Link>
               )}
             </div>
-
 
             <div className="grid gap-3 md:grid-cols-2 mb-6">
               <Input
@@ -412,25 +471,40 @@ const Dashboard = () => {
                 <TableBody>
                   {isLoadingProvenance ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                      <TableCell
+                        colSpan={6}
+                        className="text-center text-muted-foreground py-8"
+                      >
                         Loading provenance summary...
                       </TableCell>
                     </TableRow>
                   ) : filteredRows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                      <TableCell
+                        colSpan={6}
+                        className="text-center text-muted-foreground py-8"
+                      >
                         {uniprotInput.trim() || referenceInput.trim() ? (
-                          <>No results found for <strong>{uniprotInput.trim() || referenceInput.trim()}</strong></>
+                          <>
+                            No results found for{" "}
+                            <strong>
+                              {uniprotInput.trim() || referenceInput.trim()}
+                            </strong>
+                          </>
                         ) : (
-                          'No provenance rows found.'
+                          "No provenance rows found."
                         )}
                       </TableCell>
                     </TableRow>
                   ) : (
                     paginatedRows.map((row) => (
-                      <TableRow key={`${row.disease_target}-${row.nct_id}-${row.pmid ?? 'none'}`}>
+                      <TableRow
+                        key={`${row.disease_target}-${row.nct_id}-${row.pmid ?? "none"}`}
+                      >
                         <TableCell>{row.doid}</TableCell>
-                        <TableCell className="font-mono">{row.uniprot}</TableCell>
+                        <TableCell className="font-mono">
+                          {row.uniprot}
+                        </TableCell>
                         <TableCell>{row.gene_symbol}</TableCell>
                         <TableCell>
                           {row.nct_id ? (
@@ -443,13 +517,16 @@ const Dashboard = () => {
                               {row.nct_id}
                             </a>
                           ) : (
-                            '-'
+                            "-"
                           )}
                         </TableCell>
                         <TableCell>
                           {row.pmid ? (
                             <a
-                              href={row.pubmed_url ?? `https://pubmed.ncbi.nlm.nih.gov/${row.pmid}/`}
+                              href={
+                                row.pubmed_url ??
+                                `https://pubmed.ncbi.nlm.nih.gov/${row.pmid}/`
+                              }
                               target="_blank"
                               rel="noreferrer"
                               className="text-primary hover:underline"
@@ -457,12 +534,10 @@ const Dashboard = () => {
                               {row.pmid}
                             </a>
                           ) : (
-                            '-'
+                            "-"
                           )}
                         </TableCell>
-                        <TableCell>
-                          {row.citation ?? '-'}
-                        </TableCell>
+                        <TableCell>{row.citation ?? "-"}</TableCell>
                       </TableRow>
                     ))
                   )}
@@ -474,7 +549,9 @@ const Dashboard = () => {
             {!isLoadingProvenance && filteredRows.length > 0 && (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
                 <div className="flex items-center gap-2 text-sm">
-                  <label htmlFor="pageSize" className="text-muted-foreground">Show entries:</label>
+                  <label htmlFor="pageSize" className="text-muted-foreground">
+                    Show entries:
+                  </label>
                   <select
                     id="pageSize"
                     value={pageSize}
@@ -482,13 +559,16 @@ const Dashboard = () => {
                     className="rounded-md border border-border bg-background px-2 py-1 text-sm"
                   >
                     {[20, 30, 40, 50].map((n) => (
-                      <option key={n} value={n}>{n}</option>
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <span className="text-sm text-muted-foreground">
-                  Showing {showingFrom}–{showingTo} of {filteredRows.length} entries
+                  Showing {showingFrom}–{showingTo} of {filteredRows.length}{" "}
+                  entries
                 </span>
 
                 <div className="flex items-center gap-1">

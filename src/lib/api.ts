@@ -2,16 +2,23 @@
   Main API Request function
 */
 
-import type { DiseaseTargetAssociation, TDL, EvidenceTrail } from '@/types/tictac';
+import type {
+  DiseaseTargetAssociation,
+  TDL,
+  EvidenceTrail,
+} from "@/types/tictac";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
 
 // Keep URL building in one place
 // E.g: buildUrl("/search", { q: "diabetes", page: 2 })
 // Output:{url}/search?q=diabetes&page=2
-const buildUrl = (path: string, params?: Record<string, string | number | boolean | undefined>) => {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  const normalizedBase = API_BASE_URL.replace(/\/+$/, '');
+const buildUrl = (
+  path: string,
+  params?: Record<string, string | number | boolean | undefined>,
+) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const normalizedBase = API_BASE_URL.replace(/\/+$/, "");
 
   const rawUrl = `${normalizedBase}${normalizedPath}`;
 
@@ -20,7 +27,7 @@ const buildUrl = (path: string, params?: Record<string, string | number | boolea
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') {
+      if (value !== undefined && value !== "") {
         url.searchParams.set(key, String(value));
       }
     });
@@ -29,10 +36,11 @@ const buildUrl = (path: string, params?: Record<string, string | number | boolea
   return url.toString();
 };
 
-
-// API request main 
-const fetchJson = async <T>(path: string, params?: Record<string, string | number | boolean | undefined>): Promise<T> => {
-
+// API request main
+const fetchJson = async <T>(
+  path: string,
+  params?: Record<string, string | number | boolean | undefined>,
+): Promise<T> => {
   const response = await fetch(buildUrl(path, params));
   if (!response.ok) {
     throw new Error(`API request failed: ${response.status}`);
@@ -40,13 +48,12 @@ const fetchJson = async <T>(path: string, params?: Record<string, string | numbe
   return response.json() as Promise<T>;
 };
 
-
 // Helper functions
 const asArray = <T>(payload: unknown): T[] => {
   // Get [items] from the API response
   if (Array.isArray(payload)) return payload as T[];
 
-  if (payload && typeof payload === 'object') {
+  if (payload && typeof payload === "object") {
     const obj = payload as Record<string, unknown>;
     if (Array.isArray(obj.items)) return obj.items as T[];
   }
@@ -59,23 +66,21 @@ const readNumber = (value: unknown, fallback = 0): number => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-const readString = (value: unknown, fallback = ''): string => {
-  return typeof value === 'string' ? value : fallback;
+const readString = (value: unknown, fallback = ""): string => {
+  return typeof value === "string" ? value : fallback;
 };
 
 const normalizeTdl = (value: unknown): TDL => {
   const raw = readString(value).toLowerCase();
-  if (raw === 'tclin') return 'Tclin';
-  if (raw === 'tchem') return 'Tchem';
-  if (raw === 'tbio') return 'Tbio';
-  return 'Tdark';
+  if (raw === "tclin") return "Tclin";
+  if (raw === "tchem") return "Tchem";
+  if (raw === "tbio") return "Tbio";
+  return "Tdark";
 };
-
 
 type SummaryRow = Record<string, unknown>;
 type EvidenceRow = Record<string, unknown>;
 type ProvenanceRow = Record<string, unknown>;
-
 
 // Mapping Helpers
 const mapSummaryRow = (row: SummaryRow): DiseaseTargetAssociation => {
@@ -90,7 +95,7 @@ const mapSummaryRow = (row: SummaryRow): DiseaseTargetAssociation => {
   return {
     id,
     geneSymbol: readString(row.gene_symbol),
-    geneName: readString(row.tcrdtargetname, readString(row.gene_symbol)),
+    targetName: readString(row.tcrdtargetname),
     uniprotId,
     diseaseName: readString(row.disease_name, diseaseId),
     diseaseId,
@@ -106,11 +111,12 @@ const mapSummaryRow = (row: SummaryRow): DiseaseTargetAssociation => {
 
 const mapEvidenceRow = (row: EvidenceRow, index: number): EvidenceTrail => {
   const citation = readString(row.citation);
-  const title = citation || readString(row.official_title, 'Clinical evidence record');
+  const title =
+    citation || readString(row.official_title, "Clinical evidence record");
 
   return {
-    id: `${readString(row.nct_id, 'nct')}-${index}`,
-    nctId: readString(row.nct_id, 'N/A'),
+    id: `${readString(row.nct_id, "nct")}-${index}`,
+    nctId: readString(row.nct_id, "N/A"),
     title,
     studyType: readString(row.study_type),
     phase: readString(row.phase),
@@ -121,14 +127,13 @@ const mapEvidenceRow = (row: EvidenceRow, index: number): EvidenceTrail => {
   };
 };
 
-
 // API endpoints all below
 const fetchHealth = async (): Promise<{ status: string }> => {
-  return fetchJson<{ status: string }>('/meta/health');
+  return fetchJson<{ status: string }>("/meta/health");
 };
 
 export const fetchCounts = async (): Promise<Record<string, unknown>> => {
-  return fetchJson<Record<string, unknown>>('/meta/counts');
+  return fetchJson<Record<string, unknown>>("/meta/counts");
 };
 
 export const fetchAssociationSummary = async (params: {
@@ -139,7 +144,7 @@ export const fetchAssociationSummary = async (params: {
   limit?: number;
   offset?: number;
 }): Promise<DiseaseTargetAssociation[]> => {
-  const payload = await fetchJson<unknown>('/associations/summary', params);
+  const payload = await fetchJson<unknown>("/associations/summary", params);
   return asArray<SummaryRow>(payload).map(mapSummaryRow);
 };
 
@@ -179,7 +184,10 @@ export const fetchProvenanceSummary = async (params: {
   limit?: number;
   offset?: number;
 }): Promise<ProvenanceSummaryItem[]> => {
-  const payload = await fetchJson<unknown>('/associations/provenance_summary', params);
+  const payload = await fetchJson<unknown>(
+    "/associations/provenance_summary",
+    params,
+  );
   return asArray<ProvenanceRow>(payload).map(mapProvenanceRow);
 };
 
@@ -196,12 +204,15 @@ const fetchAssociationEvidence = async (params: {
   limit?: number;
   offset?: number;
 }): Promise<EvidenceTrail[]> => {
-  const payload = await fetchJson<unknown>('/associations/evidence', params);
+  const payload = await fetchJson<unknown>("/associations/evidence", params);
   return asArray<EvidenceRow>(payload).map(mapEvidenceRow);
 };
 
-export const fetchDiseaseSearch = async (q: string, limit = 8): Promise<Array<{ doid: string; disease_name: string }>> => {
-  const payload = await fetchJson<unknown>('/diseases/search', { q, limit });
+export const fetchDiseaseSearch = async (
+  q: string,
+  limit = 8,
+): Promise<Array<{ doid: string; disease_name: string }>> => {
+  const payload = await fetchJson<unknown>("/diseases/search", { q, limit });
   const rows = asArray<Record<string, unknown>>(payload);
 
   return rows.map((row) => ({
@@ -210,8 +221,18 @@ export const fetchDiseaseSearch = async (q: string, limit = 8): Promise<Array<{ 
   }));
 };
 
-export const fetchTargetSearch = async (q: string, limit = 8): Promise<Array<{ gene_symbol: string; uniprot: string; idgtdl: TDL; tcrdtargetname: string }>> => {
-  const payload = await fetchJson<unknown>('/targets/search', { q, limit });
+export const fetchTargetSearch = async (
+  q: string,
+  limit = 8,
+): Promise<
+  Array<{
+    gene_symbol: string;
+    uniprot: string;
+    idgtdl: TDL;
+    tcrdtargetname: string;
+  }>
+> => {
+  const payload = await fetchJson<unknown>("/targets/search", { q, limit });
   const rows = asArray<Record<string, unknown>>(payload);
 
   return rows.map((row) => ({
@@ -222,17 +243,25 @@ export const fetchTargetSearch = async (q: string, limit = 8): Promise<Array<{ g
   }));
 };
 
-export const fetchAssociationById = async (diseaseTarget: string): Promise<DiseaseTargetAssociation | null> => {
+export const fetchAssociationById = async (
+  diseaseTarget: string,
+): Promise<DiseaseTargetAssociation | null> => {
   let summary: DiseaseTargetAssociation | null = null;
 
-  const [doid, uniprot] = diseaseTarget.includes('_') ? diseaseTarget.split('_') : ['', ''];
+  const [doid, uniprot] = diseaseTarget.includes("_")
+    ? diseaseTarget.split("_")
+    : ["", ""];
 
   if (doid && uniprot) {
     const matches = await fetchAssociationSummary({ doid, uniprot, limit: 1 });
     summary = matches[0] ?? null;
   }
 
-  const evidence = await fetchAssociationEvidence({ doid, uniprot, limit: 100 });
+  const evidence = await fetchAssociationEvidence({
+    doid,
+    uniprot,
+    limit: 100,
+  });
 
   if (summary) {
     return {
@@ -247,12 +276,12 @@ export const fetchAssociationById = async (diseaseTarget: string): Promise<Disea
 
   return {
     id: diseaseTarget,
-    geneSymbol: 'Unknown',
-    geneName: 'Unknown target',
-    uniprotId: uniprot || 'Unknown',
-    diseaseName: doid || 'Unknown disease',
-    diseaseId: doid || 'Unknown',
-    tdl: 'Tdark',
+    geneSymbol: "Unknown",
+    targetName: "Unknown target",
+    uniprotId: uniprot || "Unknown",
+    diseaseName: doid || "Unknown disease",
+    diseaseId: doid || "Unknown",
+    tdl: "Tdark",
     meanRankScore: 0,
     nStud: evidence.length,
     nPub: 0,

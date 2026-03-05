@@ -166,7 +166,7 @@ const EvidenceDetail = () => {
                   <TDLBadge tdl={association.tdl} />
                 </div>
                 <p className="text-lg text-muted-foreground">
-                  {association.geneName}
+                  {association.targetName}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   UniProt: {association.uniprotId}
