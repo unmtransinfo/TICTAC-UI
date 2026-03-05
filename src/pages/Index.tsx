@@ -115,7 +115,7 @@ const Index = () => {
             </h1>
 
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10">
-              Explore validated disease-target associations from 500K+ clinical
+              Explore validated disease-target associations from 190K+ clinical
               trials. Trace every insight back to its source.
             </p>
 
@@ -250,7 +250,8 @@ const Index = () => {
                 />
                 <p className="text-sm text-muted-foreground">
                   {tdl === "Tclin" && "Approved drugs exist"}
-                  {tdl === "Tchem" && "Bind to small molecules with high potency"}
+                  {tdl === "Tchem" &&
+                    "Bind to small molecules with high potency"}
                   {tdl === "Tbio" && "Biological data available"}
                   {tdl === "Tdark" && "Understudied, little data available"}
                 </p>

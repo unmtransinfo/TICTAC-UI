@@ -1,6 +1,6 @@
 # Target Illumination by Clinical Trial Analytics & Citations (TICTAC) UI
 
-TICTAC is a web-based research platform designed to illuminate drug targets through clinical evidence. It aggregates and scores disease-target associations from over 500K+ clinical trials, allowing researchers to explore validated targets and trace their provenance back to source publications and trials.
+TICTAC is a web-based research platform designed to illuminate drug targets through clinical evidence. It aggregates and scores disease-target associations from over 190K+ clinical trials, allowing researchers to explore validated targets and trace their provenance back to source publications and trials.
 
 This project is the frontend mapping to the TICTAC-API, built using modern web development standards to provide an intuitive, responsive, and performance-driven experience.
 
