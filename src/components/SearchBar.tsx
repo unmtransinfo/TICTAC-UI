@@ -2,14 +2,14 @@
   Search bar.
 */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { fetchDiseaseSearch, fetchTargetSearch } from '@/lib/api';
-import type { SearchResult } from '@/types/tictac';
 import { cn } from '@/lib/utils';
+import type { SearchResult } from '@/types/tictac';
+import { Search, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface SearchBarProps {
     className?: string;
@@ -19,7 +19,7 @@ interface SearchBarProps {
 
 export const SearchBar = ({
     className,
-    placeholder = 'Search diseases or gene targets...',
+    placeholder = 'Search diseases, genes, or targets...',
     autoFocus = false,
 }: SearchBarProps) => {
     const [query, setQuery] = useState('');

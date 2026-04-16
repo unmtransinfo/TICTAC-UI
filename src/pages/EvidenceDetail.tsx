@@ -2,93 +2,68 @@
   Evidence Detail Page. 
   Loads one disease-target and renders its full detail page.
 */
-import { useEffect, useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, FlaskConical, FileText, Beaker, TestTube } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TDLBadge } from "@/components/TDLBadge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { fetchAssociationById } from "@/lib/api";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { TDLBadge } from '@/components/TDLBadge';
-import { fetchAssociationById } from '@/lib/api';
-import { REFERENCE_TYPE_WEIGHTS, type ReferenceType, type Evidence, type DiseaseTargetAssociation } from '@/types/tictac';
-import { cn } from '@/lib/utils';
+  type DiseaseTargetAssociation,
+  type EvidenceTrail,
+} from "@/types/tictac";
+import { ArrowLeft, ExternalLink, FlaskConical } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 
-const REFERENCE_TYPE_INFO: Record<
-  ReferenceType,
-  { label: string; color: string; icon: React.ComponentType<{ className?: string }> }
-> = {
-  RESULT: {
-    label: 'Result',
-    color: 'bg-evidence-result text-white',
-    icon: TestTube,
-  },
-  BACKGROUND: {
-    label: 'Background',
-    color: 'bg-evidence-background text-white',
-    icon: FileText,
-  },
-  DERIVED: {
-    label: 'Derived',
-    color: 'bg-evidence-derived text-white',
-    icon: Beaker,
-  },
-};
-
-const EvidenceCard = ({ evidence }: { evidence: Evidence }) => {
-  const refInfo = REFERENCE_TYPE_INFO[evidence.referenceType];
-  const RefIcon = refInfo.icon;
-
+const EvidenceCard = ({ evidence }: { evidence: EvidenceTrail }) => {
   return (
     <Card className="group hover:border-primary/30 transition-colors">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <Badge className={cn('shrink-0', refInfo.color)}>
-                <RefIcon className="h-3 w-3 mr-1" />
-                {refInfo.label}
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                Weight: {REFERENCE_TYPE_WEIGHTS[evidence.referenceType]}
-              </span>
-            </div>
-            <h4 className="font-medium text-foreground mb-1 line-clamp-2">
-              {evidence.title}
-            </h4>
-            <p className="text-sm text-muted-foreground mb-2">
-              {evidence.authors} • {evidence.journal} ({evidence.year})
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {evidence.nctId !== 'N/A' && (
-                <a
-                  href={`https://clinicaltrials.gov/study/${evidence.nctId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                >
-                  {evidence.nctId}
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              )}
-              {evidence.pmid && (
-                <a
-                  href={`https://pubmed.ncbi.nlm.nih.gov/${evidence.pmid}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                >
-                  PMID: {evidence.pmid}
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              )}
-            </div>
-          </div>
+      <CardContent className="p-4 space-y-2">
+        <h4 className="font-medium text-foreground line-clamp-2">
+          {evidence.title}
+        </h4>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1 text-sm">
+          <span className="text-muted-foreground">
+            Type:{" "}
+            <span className="text-foreground">{evidence.studyType || "—"}</span>
+          </span>
+          <span className="text-muted-foreground">
+            Phase:{" "}
+            <span className="text-foreground">{evidence.phase || "—"}</span>
+          </span>
+          <span className="text-muted-foreground">
+            Status:{" "}
+            <span className="text-foreground">
+              {evidence.overallStatus || "—"}
+            </span>
+          </span>
+          <span className="text-muted-foreground">
+            Start:{" "}
+            <span className="text-foreground">{evidence.startDate || "—"}</span>
+          </span>
+          <span className="text-muted-foreground">
+            Completion:{" "}
+            <span className="text-foreground">
+              {evidence.completionDate || "—"}
+            </span>
+          </span>
+          <span className="text-muted-foreground">
+            Enrollment:{" "}
+            <span className="text-foreground">
+              {evidence.enrollment.toLocaleString()}
+            </span>
+          </span>
         </div>
+        {evidence.nctId !== "N/A" && (
+          <a
+            href={`https://clinicaltrials.gov/study/${evidence.nctId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            {evidence.nctId}
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
       </CardContent>
     </Card>
   );
@@ -96,7 +71,8 @@ const EvidenceCard = ({ evidence }: { evidence: Evidence }) => {
 
 const EvidenceDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const [association, setAssociation] = useState<DiseaseTargetAssociation | null>(null);
+  const [association, setAssociation] =
+    useState<DiseaseTargetAssociation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // When ID changes do API request
@@ -121,21 +97,6 @@ const EvidenceDetail = () => {
 
     void load();
   }, [id]);
-
-  // Organize evidence by 3 types
-  const groupedEvidence = useMemo(() => {
-    if (!association) {
-      return { RESULT: [], BACKGROUND: [], DERIVED: [] } as Record<ReferenceType, Evidence[]>;
-    }
-
-    return association.evidence.reduce(
-      (acc, ev) => {
-        acc[ev.referenceType].push(ev);
-        return acc;
-      },
-      { RESULT: [], BACKGROUND: [], DERIVED: [] } as Record<ReferenceType, Evidence[]>
-    );
-  }, [association]);
 
   if (isLoading) {
     return (
@@ -172,7 +133,10 @@ const EvidenceDetail = () => {
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
-          <Link to="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity"
+          >
             <FlaskConical className="h-6 w-6" />
             <span className="font-bold text-lg">TICTAC</span>
           </Link>
@@ -181,7 +145,9 @@ const EvidenceDetail = () => {
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Back Button */}
-        <Link to={`/dashboard?disease=${encodeURIComponent(association.diseaseId)}`}>
+        <Link
+          to={`/dashboard?disease=${encodeURIComponent(association.diseaseId)}`}
+        >
           <Button variant="ghost" size="sm" className="mb-6 -ml-2">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to {association.diseaseName}
@@ -195,13 +161,15 @@ const EvidenceDetail = () => {
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <CardTitle className="text-2xl md:text-3xl">
-                    {association.geneSymbol}
+                    {association.uniprotId}
                   </CardTitle>
                   <TDLBadge tdl={association.tdl} />
                 </div>
-                <p className="text-lg text-muted-foreground">{association.geneName}</p>
+                <p className="text-lg text-muted-foreground">
+                  {association.targetName}
+                </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  UniProt: {association.uniprotId}
+                  Gene: {association.geneSymbol}
                 </p>
               </div>
 
@@ -210,7 +178,9 @@ const EvidenceDetail = () => {
                 <div className="text-4xl font-bold text-primary mb-1">
                   {association.meanRankScore.toFixed(1)}
                 </div>
-                <div className="text-sm text-muted-foreground">Mean Rank Score</div>
+                <div className="text-sm text-muted-foreground">
+                  Mean Rank Score
+                </div>
                 <div
                   className="w-32 h-2 rounded-full mt-2"
                   style={{ background: scoreGradient }}
@@ -235,7 +205,9 @@ const EvidenceDetail = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-3 rounded-lg bg-muted/50">
                 <div className="text-2xl font-bold">{association.nPub}</div>
-                <div className="text-sm text-muted-foreground">Publications</div>
+                <div className="text-sm text-muted-foreground">
+                  Publications
+                </div>
               </div>
               <div className="p-3 rounded-lg bg-muted/50">
                 <div className="text-2xl font-bold">{association.nStud}</div>
@@ -245,12 +217,7 @@ const EvidenceDetail = () => {
                 <div className="text-2xl font-bold">{association.nDrug}</div>
                 <div className="text-sm text-muted-foreground">Drugs</div>
               </div>
-              <div className="p-3 rounded-lg bg-muted/50">
-                <div className="text-2xl font-bold">
-                  {(association.studyNewness * 100).toFixed(0)}%
-                </div>
-                <div className="text-sm text-muted-foreground">Newness</div>
-              </div>
+              <div className="p-3 rounded-lg bg-muted/50"></div>
             </div>
           </CardContent>
         </Card>
@@ -258,48 +225,20 @@ const EvidenceDetail = () => {
         {/* Evidence Trail */}
         <h2 className="text-xl font-semibold mb-4">Evidence Trail</h2>
         <p className="text-muted-foreground mb-6">
-          Tracing the provenance of this association back to clinical trials and publications.
-          Evidence is weighted by reference type: Result (1.0) &gt; Background (0.5) &gt; Derived (0.25).
+          Tracing the provenance of this association back to clinical trials.
         </p>
 
-        <div className="space-y-6">
-          {(['RESULT', 'BACKGROUND', 'DERIVED'] as const).map((refType) => {
-            const evidence = groupedEvidence[refType];
-            if (evidence.length === 0) return null;
-
-            const refInfo = REFERENCE_TYPE_INFO[refType];
-            const RefIcon = refInfo.icon;
-
-            return (
-              <Collapsible key={refType} defaultOpen={refType === 'RESULT'}>
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between p-4 h-auto rounded-lg border bg-card hover:bg-muted/50"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Badge className={cn('shrink-0', refInfo.color)}>
-                        <RefIcon className="h-3 w-3 mr-1" />
-                        {refInfo.label}
-                      </Badge>
-                      <span className="font-medium">
-                        {evidence.length} reference{evidence.length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      Weight: {REFERENCE_TYPE_WEIGHTS[refType]}
-                    </span>
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-2 space-y-2">
-                  {evidence.map((ev) => (
-                    <EvidenceCard key={ev.id} evidence={ev} />
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            );
-          })}
-        </div>
+        {association.evidence.length === 0 ? (
+          <p className="text-muted-foreground text-sm">
+            No clinical trial evidence available.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {association.evidence.map((ev) => (
+              <EvidenceCard key={ev.id} evidence={ev} />
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

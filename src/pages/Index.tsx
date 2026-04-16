@@ -3,37 +3,43 @@
   then renders everything to the dashboard.
 */
 
-import { Link } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Database, Search, GitBranch, FlaskConical, Target, FileText } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { MolecularBackground } from '@/components/MolecularBackground';
-import { SearchBar } from '@/components/SearchBar';
-import { TDLBadge } from '@/components/TDLBadge';
-import { fetchAssociationSummary, fetchCounts } from '@/lib/api';
+import { MolecularBackground } from "@/components/MolecularBackground";
+import { SearchBar } from "@/components/SearchBar";
+import { TDLBadge } from "@/components/TDLBadge";
+import { fetchAssociationSummary, fetchCounts } from "@/lib/api";
+import {
+  Database,
+  FileText,
+  FlaskConical,
+  GitBranch,
+  Search,
+  Target,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 // Default mapping
 const FALLBACK_STATS = {
-  studies: '0',
-  targets: '0',
-  diseases: '0',
-  publications: '0',
+  studies: "0",
+  targets: "0",
+  diseases: "0",
+  publications: "0",
 };
 
 // Helper function
 const formatCount = (value: unknown): string => {
   const n = Number(value);
-  return Number.isFinite(n) ? n.toLocaleString() : '0';
+  return Number.isFinite(n) ? n.toLocaleString() : "0";
 };
 
 const Index = () => {
   const [stats, setStats] = useState(FALLBACK_STATS);
-  const [popularDiseases, setPopularDiseases] = useState<Array<{ doid: string; name: string }>>([]);
-
+  const [popularDiseases, setPopularDiseases] = useState<
+    Array<{ doid: string; name: string }>
+  >([]);
 
   useEffect(() => {
     const load = async () => {
-
       // API Request for /meta/counts
       // stats
       try {
@@ -48,7 +54,6 @@ const Index = () => {
       } catch {
         setStats(FALLBACK_STATS);
       }
-
 
       try {
         const rows = await fetchAssociationSummary({ limit: 30 });
@@ -65,7 +70,7 @@ const Index = () => {
         setPopularDiseases(
           Array.from(unique.entries())
             .slice(0, 3)
-            .map(([doid, name]) => ({ doid, name }))
+            .map(([doid, name]) => ({ doid, name })),
         );
       } catch {
         setPopularDiseases([]);
@@ -75,16 +80,15 @@ const Index = () => {
     void load();
   }, []);
 
-
   // Setting stats!!!
   const statCards = useMemo(
     () => [
-      { label: 'Clinical Trials', value: stats.studies, icon: Database },
-      { label: 'Gene Targets', value: stats.targets, icon: Target },
-      { label: 'Diseases', value: stats.diseases, icon: FlaskConical },
-      { label: 'Publications', value: stats.publications, icon: FileText },
+      { label: "Clinical Trials", value: stats.studies, icon: Database },
+      { label: "Targets", value: stats.targets, icon: Target },
+      { label: "Diseases", value: stats.diseases, icon: FlaskConical },
+      { label: "Publications", value: stats.publications, icon: FileText },
     ],
-    [stats]
+    [stats],
   );
 
   return (
@@ -111,8 +115,8 @@ const Index = () => {
             </h1>
 
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10">
-              Explore validated disease-target associations from 500K+ clinical trials.
-              Trace every insight back to its source.
+              Explore validated disease-target associations from 190K+ clinical
+              trials. Trace every insight back to its source.
             </p>
 
             {/* Search Bar */}
@@ -147,7 +151,9 @@ const Index = () => {
                   <div className="text-2xl md:text-3xl font-bold text-foreground">
                     {stat.value}
                   </div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {stat.label}
+                  </div>
                 </div>
               ))}
             </div>
@@ -163,32 +169,33 @@ const Index = () => {
               How TICTAC Works
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Target Illumination by Clinical Trial Analytics & Citations aggregates evidence
-              from clinical trials to score disease-target associations.
+              Target Illumination by Clinical Trial Analytics & Citations
+              aggregates evidence from clinical trials to score disease-target
+              associations.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
               {
-                step: '01',
-                title: 'Search',
+                step: "01",
+                title: "Search",
                 description:
-                  'Enter a disease or gene target to explore validated associations across clinical trials.',
+                  "Enter a disease, gene, or target to explore validated associations across clinical trials.",
                 icon: Search,
               },
               {
-                step: '02',
-                title: 'Explore',
+                step: "02",
+                title: "Explore",
                 description:
-                  'View ranked targets with meanRankScore, publication counts, and Target Development Level (TDL).',
+                  "View ranked targets with meanRankScore, publication counts, and Target Development Level (TDL).",
                 icon: Target,
               },
               {
-                step: '03',
-                title: 'Trace Provenance',
+                step: "03",
+                title: "Trace Provenance",
                 description:
-                  'Drill into any association to see the complete evidence trail—clinical trials, publications, and citations.',
+                  "Drill into any association to see the complete evidence trail—clinical trials, publications, and citations.",
                 icon: GitBranch,
               },
             ].map((item) => (
@@ -216,19 +223,37 @@ const Index = () => {
               Target Development Levels
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Each target is classified by its development level, indicating the maturity of drug discovery efforts.
+              Each target is classified by its development level, indicating the
+              maturity of drug discovery efforts. For more information see the{" "}
+              <a
+                href="https://academic.oup.com/nar/article/51/D1/D1405/6851109"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Pharos Paper
+              </a>
+              .
             </p>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-            {(['Tclin', 'Tchem', 'Tbio', 'Tdark'] as const).map((tdl) => (
-              <div key={tdl} className="p-6 rounded-xl bg-card border border-border/50 text-center">
-                <TDLBadge tdl={tdl} showTooltip={false} className="text-lg px-4 py-1 mb-4" />
+            {(["Tclin", "Tchem", "Tbio", "Tdark"] as const).map((tdl) => (
+              <div
+                key={tdl}
+                className="p-6 rounded-xl bg-card border border-border/50 text-center"
+              >
+                <TDLBadge
+                  tdl={tdl}
+                  showTooltip={false}
+                  className="text-lg px-4 py-1 mb-4"
+                />
                 <p className="text-sm text-muted-foreground">
-                  {tdl === 'Tclin' && 'Approved drugs or mechanism of action known'}
-                  {tdl === 'Tchem' && 'Active compounds in development'}
-                  {tdl === 'Tbio' && 'Biological annotation available'}
-                  {tdl === 'Tdark' && 'Understudied, limited annotation'}
+                  {tdl === "Tclin" && "Approved drugs exist"}
+                  {tdl === "Tchem" &&
+                    "Bind to small molecules with high potency"}
+                  {tdl === "Tbio" && "Biological data available"}
+                  {tdl === "Tdark" && "Understudied, little data available"}
                 </p>
               </div>
             ))}
@@ -236,29 +261,11 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-primary/10 via-background to-accent/10">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Start Exploring Evidence
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            Dive into the TICTAC database and discover evidence-backed disease-target associations.
-          </p>
-          <Button asChild size="lg" className="group">
-            <Link to="/dashboard">
-              View Dashboard
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </Button>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="py-8 border-t border-border/50">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>
-            TICTAC Research Platform • Based on{' '}
+            TICTAC Research Platform • Based on{" "}
             <a
               href="https://www.frontiersin.org/journals/bioinformatics/articles/10.3389/fbinf.2025.1579865/full"
               target="_blank"

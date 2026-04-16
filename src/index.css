@@ -39,11 +39,15 @@
 
     --radius: 0.5rem;
 
-    /* TDL (Target Development Level) Colors - from TICTAC paper */
-    --tdl-tclin: 210 100% 45%;
-    --tdl-tchem: 145 65% 40%;
-    --tdl-tbio: 45 95% 50%;
-    --tdl-tdark: 220 10% 50%;
+    /* TDL (Target Development Level) Colors - updated to specific colors requested */
+    --tdl-tclin: 30 95% 50%;
+    /* Orange */
+    --tdl-tchem: 217 91% 60%;
+    /* Blue */
+    --tdl-tbio: 140 60% 40%;
+    /* Green */
+    --tdl-tdark: 0 75% 50%;
+    /* Red */
 
     /* Evidence type colors */
     --evidence-result: 145 65% 40%;
@@ -95,10 +99,10 @@
     --ring: 210 100% 55%;
 
     /* TDL Colors - adjusted for dark mode */
-    --tdl-tclin: 210 100% 60%;
-    --tdl-tchem: 145 70% 50%;
-    --tdl-tbio: 45 95% 55%;
-    --tdl-tdark: 220 10% 55%;
+    --tdl-tclin: 30 100% 60%;
+    --tdl-tchem: 217 91% 60%;
+    --tdl-tbio: 140 65% 55%;
+    --tdl-tdark: 0 85% 65%;
 
     /* Evidence type colors - dark mode */
     --evidence-result: 145 70% 50%;
