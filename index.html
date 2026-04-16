@@ -3,6 +3,14 @@
 
 <head>
   <!-- Google tag (gtag.js) -->
+   <script>
+    // In future: we can use import.meta.env.PROD instead of below if statement
+    if (window.location.hostname === 'localhost' ||
+       window.location.hostname === '127.0.0.1') {
+      window['ga-disable-G-W2R2BT44ZW'] = true;
+    }
+  </script>
+
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-W2R2BT44ZW"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
